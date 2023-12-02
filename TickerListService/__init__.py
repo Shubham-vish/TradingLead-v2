@@ -2,8 +2,6 @@ import pandas as pd
 import json
 import os
 import azure.functions as func
-
-# Import your KeyVault, Logger, and RedisCache services
 from SharedCode.Repository.Logger.logger_service import LoggerService
 from SharedCode.Repository.Cache.redis_cache_service import RedisCacheService
 from SharedCode.Utils.constants import Constants
@@ -25,7 +23,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     # Initialize RedisCacheService
     redis_cache = RedisCacheService()
 
-    cache_key = "stock_info"
+    cache_key = "ticker_list"
     cached_data = redis_cache.get_value(cache_key)
 
     # Check if data is already in cache
@@ -35,7 +33,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
     # If not in cache, read from Excel
     telemetry.info("Data not found in cache. Reading from Excel file.", tel_props)
-    excel_path = os.getcwd() + '/FetchStockInfo/TickerList.xlsx'
+    excel_path = os.getcwd() + '/TickerListService/TickerList.xlsx'
 
     try:
         df = pd.read_excel(excel_path, sheet_name='Sheet1')
@@ -45,6 +43,9 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
         # Save the fetched data to Redis cache
         redis_cache.set_value(cache_key, json_data)
+        tel_props.update({Constants.RESPONSE_BODY: json_data, Constants.CACHE_KEY: cache_key})
+        
+        telemetry.info("Data saved to cache.", tel_props)
         return func.HttpResponse(body=json_data, mimetype='application/json')
 
     except Exception as e:

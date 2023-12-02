@@ -1,0 +1,4 @@
+@host = http://localhost:7071/api
+
+### GetTickers
+GET {{host}}/TickerListService

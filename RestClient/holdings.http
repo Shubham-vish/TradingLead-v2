@@ -1,0 +1,8 @@
+@userId = 1db30ee5-e01a-421f-9f60-bb72ffe31add
+@host = http://localhost:7071/api
+
+### Get all holdings
+GET {{host}}/Holdings/{{userId}}
+
+###
+POST {{host}}/Holdings/{{userId}}
