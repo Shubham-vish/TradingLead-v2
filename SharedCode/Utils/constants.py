@@ -6,10 +6,10 @@ class Constants:
     SERVICE = "Service"
     
     # Telemetry property constants (for environment variables)
-    telemetry_app = "TelemetryProp:App"
-    telemetry_env = "TelemetryProp:Env"
-    telemetry_version = "TelemetryProp:Version"
-    telemetry_service = "TelemetryProp:Service"
+    telemetry_app = "TelemetryPropApp"
+    telemetry_env = "TelemetryPropEnv"
+    telemetry_version = "TelemetryPropVersion"
+    telemetry_service = "TelemetryPropService"
     
     # Telemetry Service Names
     fetch_stock_info_service = "TickerListService"

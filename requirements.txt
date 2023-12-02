@@ -12,3 +12,8 @@ openpyxl
 azure-cosmos
 azure-keyvault-secrets
 azure-identity
+fyers_apiv3
+requests
+opencensus
+opencensus-ext-azure
+redis
