@@ -67,22 +67,23 @@ redis_cache_service = RedisCacheService()
 def main(mytimer: func.TimerRequest, context: func.Context) -> None:
     utc_timestamp = datetime.datetime.utcnow().replace(
         tzinfo=datetime.timezone.utc).isoformat()
+    
     operation_id = FunctionUtils.get_operation_id(context)
 
-    telemetry.event(f'Python timer trigger function ran at {utc_timestamp}', {
+    tel_props = {
         Constants.SERVICE : Constants.access_token_generator_service,
         Constants.operation_id : operation_id,
-    })
+    }
+    telemetry.event(f'Python timer trigger function ran at {utc_timestamp}', tel_props)
 
     if mytimer.past_due:
-        telemetry.info('The timer is past due!', {
-            Constants.operation_id : operation_id,
-        })
+        telemetry.info('The timer is past due!', tel_props)
 
     fyer_users_json = kv_service.get_secret("FyerUserDetails")
+    telemetry.info(fyer_users_json, tel_props)
     fyer_users = json.loads(fyer_users_json)
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = [executor.submit(fetch_and_store_token, user, operation_id) for user in fyer_users]
+        futures = [executor.submit(fetch_and_store_token, user, tel_props) for user in fyer_users]
         for future in concurrent.futures.as_completed(futures):
             try:
                 # If your fetch_and_store_token function returns any result, you can retrieve it here
@@ -90,18 +91,15 @@ def main(mytimer: func.TimerRequest, context: func.Context) -> None:
                 user_info = result["user"]
                 token = result["fetched_token"]
                 # Log the success or result if necessary
-                telemetry.info(f"Task completed successfully: {result}", {
-                    Constants.operation_id: operation_id,
-                    "UserId": json.dumps(user_info),
+                tel_props.update({"UserId": json.dumps(user_info),
                     "Token": token
                 })
+                telemetry.info(f"Task completed successfully: {result}", tel_props)
             except Exception as e:
                 # Handle any exceptions that were raised during the task execution
-                telemetry.exception(f"Task resulted in an exception: {e}", {
-                    Constants.operation_id: operation_id,
-                })
+                telemetry.exception(f"Task resulted in an exception: {e}", tel_props)
 
-def fetch_and_store_token(user, operation_id):
+def fetch_and_store_token(user, tel_props):
     max_retries = 3
     for attempt in range(max_retries):
         try:
@@ -109,12 +107,11 @@ def fetch_and_store_token(user, operation_id):
             fyers_details = json.loads(fyers_details_json)
             username = fyers_details[Constants.fyers_username]
 
-            tel_props = {
+            tel_props.update( {
                 Constants.username : username,
                 Constants.client_id : fyers_details[Constants.client_id],
                 Constants.contact_number : fyers_details[Constants.contact_number],
-                Constants.operation_id : operation_id,
-            }
+            })
             redis_key = f"{username}-token"
             access_token = get_fyers_access_token(fyers_details, tel_props)
             redis_cache_service.set_value(redis_key, access_token)
