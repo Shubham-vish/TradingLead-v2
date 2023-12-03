@@ -7,6 +7,7 @@ from SharedCode.Repository.Cache.redis_cache_service import RedisCacheService
 from SharedCode.Utils.constants import Constants
 from SharedCode.Utils.utility import FunctionUtils
 
+
 telemetry = LoggerService()
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
