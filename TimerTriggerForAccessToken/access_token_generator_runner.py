@@ -45,12 +45,14 @@ def access_token_generator_runner(tel_props):
     fyer_users_json = kv_service.get_secret("FyerUserDetails")
     telemetry.info(fyer_users_json, tel_props)
     fyer_users = json.loads(fyer_users_json)
+    results = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [executor.submit(fetch_and_store_token, user, tel_props) for user in fyer_users]
         for future in concurrent.futures.as_completed(futures):
             try:
                 # If your fetch_and_store_token function returns any result, you can retrieve it here
                 result = future.result()
+                results.append(result)
                 user_info = result["user"]
                 token = result["fetched_token"]
                 # Log the success or result if necessary
@@ -61,3 +63,5 @@ def access_token_generator_runner(tel_props):
             except Exception as e:
                 # Handle any exceptions that were raised during the task execution
                 telemetry.exception(f"Task resulted in an exception: {e}", tel_props)
+                
+    return results

@@ -1,0 +1,3 @@
+- Analyse different scenarios
+- Get nifty historical data dump
+- Compare countries, Sectors, Stocks based in TradingView, outperformance, underperformamce, change in behaviour
