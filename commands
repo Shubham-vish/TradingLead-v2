@@ -1,1 +1,7 @@
- func host start --debug VSCode
+func host start --debug VSCode
+
+
+https://pip.pypa.io/en/stable/installation/
+py -m pip install --upgrade pip
+
+py -m pip install -r ./requirements/txt
