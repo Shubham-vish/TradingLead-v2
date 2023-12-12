@@ -11,10 +11,13 @@ class Constants:
     telemetry_version = "TelemetryPropVersion"
     telemetry_service = "TelemetryPropService"
     
+    number_of_days_to_fetch_participation_data = "NumberOfDataParticipationDataToBeFetched"
+    
     # Telemetry Service Names
     fetch_stock_info_service = "TickerListService"
     holdings_service = "HoldingsService"
     access_token_generator_service = "AccessTokenGeneratorService"
+    fetch_store_participants_data_service = "FetchStoreParticipantsDataService"
     
     # telemetry custom dimensions keys
     username = "username"
@@ -34,6 +37,7 @@ class Constants:
     COSMOS_DB_URL = "CosmosDbUrl"
     COSMOS_DB_KEY = "CosmosDbKey"
     HOLDINGS_CONTAINER_NAME = "CosmosHoldingsContainer"
+    PARTICIPANTS_DATA_CONTAINER = "CosmosParticipantsDataContainer"
     ALERTS_CONTAINER_NAME = "CosmosAlertsContainer"
     DATABASE_ID = "CosmosDbDatabaseId"
     

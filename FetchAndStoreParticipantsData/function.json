@@ -1,0 +1,11 @@
+{
+  "scriptFile": "__init__.py",
+  "bindings": [
+    {
+      "name": "mytimer",
+      "type": "timerTrigger",
+      "direction": "in",
+      "schedule": "%SCHEDULE_CRON_FOR_PARTICIPATION_DATA_STORE%"
+    }
+  ]
+}
