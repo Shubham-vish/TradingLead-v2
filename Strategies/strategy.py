@@ -10,50 +10,6 @@ lag = 2
 smooth_colors = False
 
 
-# Define a custom kernel regression function
-def kernel_regression(src, h, r, x_0):
-    try:
-        _currentWeight = 0
-        _cumulativeWeight = 0
-        yhat = 0
-
-        for i in range(0,2+x_0):
-            y = src[i]
-            # Handle cases where the index is out of range
-            # print("y",y, " ",i)
-            w = math.pow(1 + (math.pow(i, 2) / ((math.pow(h, 2) * 2 * r))), -r)
-            _currentWeight += y * w
-            _cumulativeWeight += w
-            # print("cur w",_currentWeight)
-            # print("cu ww",_cumulativeWeight)
-
-            yhat=_currentWeight / _cumulativeWeight
-            # print("yhat ",yhat)
-        return yhat
-    except:
-        logger.warning("kernel_regression")
-
-def get_hour_close_data():
-    try:
-        from main import fyers
-        data = {
-            "symbol":ticker_name,
-            "resolution":tf,
-            "date_format":"1",
-            "range_from":"2023-10-10",
-            "range_to":"2023-12-30",
-            "cont_flag":"1"
-        }
-
-        response = fyers.history(data=data)
-        print("Api response :",response["s"])
-        candles = response["candles"]
-        close_prices = [candle[-2] for candle in candles]
-        stoploss = response["candles"][-1][-3]
-        return close_prices
-    except:
-        logger.warning("get_hour_close_data")
-
 def get_order_signal(close_prices,position):
 
     try:
@@ -82,8 +38,6 @@ def get_order_signal(close_prices,position):
         logger.warning("get_order_signal")
 
 def get_trades_time():
-
-
     try:
         start_time_str = "09:14"
         end_time_str = "15:31"

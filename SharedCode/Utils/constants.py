@@ -17,6 +17,7 @@ class Constants:
     fetch_stock_info_service = "TickerListService"
     holdings_service = "HoldingsService"
     access_token_generator_service = "AccessTokenGeneratorService"
+    strategy_executor_service = "StrategyExecutorService"
     fetch_store_participants_data_service = "FetchStoreParticipantsDataService"
     
     # telemetry custom dimensions keys

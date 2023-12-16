@@ -42,7 +42,7 @@ class FyersService:
             print("Api response :",response["s"])
             candles = response["candles"]
             close_prices = [candle[-2] for candle in candles]
-            # stoploss = response["candles"][-1][-3]
+            stoploss = response["candles"][-1][-3]
             return close_prices
         except Exception as e:
             telemetry.warning(f"Error in fetching history data {data}.\nError: {e}", properties=tel_props)
