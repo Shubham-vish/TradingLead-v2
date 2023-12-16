@@ -16,4 +16,10 @@ class FunctionUtils:
         # IST is UTC + 5 hours 30 minutes
         ist_time = utc_time + timedelta(hours=5, minutes=30)
         return ist_time
+    
+    @staticmethod
+    def get_key_for_user_access_token(username):
+        redis_key = f"{username}-token"
+        return redis_key
+    
     # Add other utility methods here as needed

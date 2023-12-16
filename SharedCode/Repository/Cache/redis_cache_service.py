@@ -9,3 +9,6 @@ class RedisCacheService:
 
     def get_value(self, key):
         return self.redis_client.get(key)
+    
+    def get_decoded_value(self, key):
+        return self.get_value(key).decode("utf-8")
