@@ -5,19 +5,19 @@ class KernelRegressionStrategy:
     def __init__(self):
         self.lookback_window = 8
         self.relative_weighting = 8
-        self.start_regression_bar = 25
+        self.x_0 = 25
         self.lag = 2
         self.smooth_colors = False
 
     def get_order_signal(self, close_prices, position):
 
         signal = 0
-        r_cp = close_prices[::-1]
-        r_cp = r_cp[:30]
-        c_cp = r_cp[0]
-        # print("r cp data ",r_cp)
-        yhat1 = MathUtils.kernel_regression(r_cp, self.lookback_window, self.relative_weighting, self.start_regression_bar)
-        yhat2 = MathUtils.kernel_regression(r_cp, self.lookback_window - self.lag, self.relative_weighting, self.start_regression_bar)
+        _src = close_prices[::-1]
+        _src = _src[:30]
+        c_cp = _src[0]
+        # print("r cp data ",_src)
+        yhat1 = MathUtils.kernel_regression(_src, self.lookback_window, self.relative_weighting, self.x_0)
+        yhat2 = MathUtils.kernel_regression(_src, self.lookback_window - self.lag, self.relative_weighting, self.x_0)
 
         print("C_cp : ",c_cp )
         print("yhat1 : ",yhat1)

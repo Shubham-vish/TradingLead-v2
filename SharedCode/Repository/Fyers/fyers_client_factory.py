@@ -24,7 +24,6 @@ class FyersClientFactory:
             # Create new client
             client = FyersClientFactory._create_new_client(user_fyers_details)
             FyersClientFactory.clients[client_id] = (client, current_time)
-
         return client
 
     @staticmethod
