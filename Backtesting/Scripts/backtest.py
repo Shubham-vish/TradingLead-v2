@@ -1,13 +1,12 @@
 import os
 import sys
 
-#Below code is for testing
-sys.path.append(os.path.abspath(os.path.join('../..')))
+# Below code is for testing
+sys.path.append(os.path.abspath(os.path.join("../..")))
 
 from Notebooks.setupConfig import setup_config
+
 setup_config()
-
-
 # Above code is for testing
 
 import pandas as pd
