@@ -25,20 +25,18 @@ class BlobService:
             download_stream = blob_client.download_blob()
             sample_blob.write(download_stream.readall())
 
-    def get_dataframe_from_blob(self, container_name, blob_name):
+    def get_ticker_df(self, container_name, blob_name):
         blob_client = self.get_blob_client(container_name, blob_name)
         download_stream = blob_client.download_blob()
         txt = download_stream.content_as_text()
         txt_io = StringIO(txt)
-        df = pd.read_csv(txt_io)
+        df = pd.read_csv(txt_io, index_col="datetime", parse_dates=["datetime"])
         return df
 
-    def get_nifty_tickers_historical_df(self, ticker):
+    def get_ticker_history(self, ticker):
         ticker = FunctionUtils.get_storage_ticker(ticker)
         blob_name = f"{Constants.DIR_NIFTY_50}/{ticker}.csv"
-        return self.get_dataframe_from_blob(
-            Constants.STOCK_HISTORY_CONTAINER, blob_name
-        )
+        return self.get_ticker_df(Constants.STOCK_HISTORY_CONTAINER, blob_name)
 
     def create_blob(self, df, container_name, blob_name):
         """
@@ -51,7 +49,7 @@ class BlobService:
 
         # Convert DataFrame to CSV format and encode to bytes
         csv_buffer = BytesIO()
-        df.to_csv(csv_buffer, index=False)
+        df.to_csv(csv_buffer)
         csv_buffer.seek(0)
         data = csv_buffer.read()
 

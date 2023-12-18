@@ -7,6 +7,7 @@ sys.path.append(os.path.abspath(os.path.join("../..")))
 from Notebooks.setupConfig import setup_config
 
 setup_config()
+
 # Above code is for testing
 
 import pandas as pd
@@ -18,4 +19,6 @@ from SharedCode.Utils.utility import FunctionUtils
 
 blob_service = BlobService()
 
-df = blob_service.get_nifty_tickers_historical_df(Tickers.nifty_50_stocks[0])
+df = blob_service.get_ticker_history(Tickers.nifty_50_stocks[0])
+
+fdf = FunctionUtils.filter_last_n_days(20)

@@ -114,3 +114,7 @@ for ticker in tickers:
     result = blob_service.create_blob(df, Constants.STOCK_HISTORY_CONTAINER, blob_name)
     print(result)
     # print(location)
+
+tickers = Tickers.nifty_50_stocks
+cdf = blob_service.get_ticker_history(tickers[0])
+cdf.head()

@@ -18,3 +18,4 @@ opencensus
 opencensus-ext-azure
 redis
 azure-storage-blob
+mplfinance
