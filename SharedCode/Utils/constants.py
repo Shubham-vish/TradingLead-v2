@@ -34,6 +34,10 @@ class Constants:
     secret_key = "SecretKey"
     redirect_uri = "RedirectUri"
     
+    STORAGE_CONNECTION_STRING = "StorageConnectionString"
+    STOCK_HISTORY_CONTAINER = "stock-history-data"
+    DIR_NIFTY_50 = "nifty50-stocks"
+    
     ### Cosmos DB Constants ###
     COSMOS_DB_URL = "CosmosDbUrl"
     COSMOS_DB_KEY = "CosmosDbKey"

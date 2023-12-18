@@ -22,4 +22,10 @@ class FunctionUtils:
         redis_key = f"{username}-token"
         return redis_key
     
+    @staticmethod
+    def get_storage_ticker(ticker):
+        return ticker.replace(":", "_")
+    
+    
+    
     # Add other utility methods here as needed

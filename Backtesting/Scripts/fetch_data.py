@@ -76,7 +76,7 @@ def historical_bydate(symbol,sd,ed, interval = 1):
 # tickers=["NSE:NIFTYBANK-INDEX", "NSE:NIFTY50-INDEX", "NSE:SBIN-EQ"]
 tickers= Tickers.nifty_50_stocks
 
-for ticker in tickers[1:]:
+for ticker in tickers:
     print(ticker)
     df = pd.DataFrame()
     sd = date(2017,7,3)
