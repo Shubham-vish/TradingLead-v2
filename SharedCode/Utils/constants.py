@@ -59,3 +59,5 @@ class Constants:
     COSMOS_PARAMS = "CosmosParams"
 
     CACHE_KEY = "CacheKey"
+    
+    communication_service_endpoint = "CommunicationServiceEndpoint"
