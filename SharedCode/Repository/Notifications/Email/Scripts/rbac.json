@@ -1,0 +1,12 @@
+{
+  "Name": "Communication Service Mail Sender",
+  "Description": "Minimal set of permissions required to send mail with Azure Communication Service.",
+  "AssignableScopes": [
+    "/subscriptions/25b14992-83a4-4b5b-99fc-5ab9a01e12bc/resourceGroups/RG-TradingLead/providers/Microsoft.Communication/CommunicationServices/testcommtrading"
+  ],
+  "Actions": [
+    "Microsoft.Communication/CommunicationServices/Write",
+    "Microsoft.Communication/CommunicationServices/Read",
+    "Microsoft.Communication/EmailServices/read"
+  ]
+}
