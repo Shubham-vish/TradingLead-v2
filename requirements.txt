@@ -20,3 +20,4 @@ redis
 azure-storage-blob
 mplfinance
 azure-communication-email
+TA-Lib

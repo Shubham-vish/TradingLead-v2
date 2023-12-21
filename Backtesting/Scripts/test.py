@@ -137,4 +137,3 @@ tyatdf = kernel_regression(tdf, 0, 8, 8, 25)
 tyatdf
 yhat = kernel_regression(closes, 8, 8, 25)
 yhat
-k_reg.get_yhat1(rsdf, list)

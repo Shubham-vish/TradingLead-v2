@@ -1,7 +1,8 @@
 func host start --debug VSCode
 
-
 https://pip.pypa.io/en/stable/installation/
 py -m pip install --upgrade pip
 
 py -m pip install -r ./requirements/txt
+
+pip install .\TA_Lib-0.4.28-cp311-cp311-win_amd64.whl
