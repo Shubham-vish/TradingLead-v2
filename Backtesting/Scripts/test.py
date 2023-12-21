@@ -18,85 +18,21 @@ from SharedCode.Utils.tikers import Tickers
 from SharedCode.Utils.utility import FunctionUtils as utils
 
 blob_service = BlobService()
-
-df = blob_service.get_ticker_history(Tickers.nifty_50_stocks[0])
-df.tail(20)
-df.head()
-fdf = utils.filter_last_n_days(df, 100)
+ticker = Tickers.nifty_50_stocks[6]
+df = blob_service.get_ticker_history(ticker)
+df = utils.filter_last_n_days(df, 100)
 
 # utils.are_dataframes_identical(
 #     utils.resample_to_timeframe(fdf, "60T"),
 #     utils.resample_to_timeframe(fdf, "1H"),
 # )
-sdf = utils.resample_to_timeframe(fdf, "30T")
-sdf.head()
-import mplfinance as mpf
+df = utils.resample_to_timeframe(df, "30T")
+df.head()
 
-mpf_style = mpf.make_mpf_style(base_mpf_style="yahoo")
-
-# Plot the candlestick chart
-mpf.plot(
-    sdf.tail(30),
-    type="candle",
-    style=mpf_style,
-    volume=True,
-    title="30-Minute Candlestick Chart",
-)
-
-rsdf = sdf.iloc[::-1]
-rsdf.head()
-rsdf = rsdf.drop(['volume'], axis=1)
-rsdf.head()
+df = df.iloc[::-1]
+df.head()
 
 import math
-# def kernel_regression(closedf, column_name, h, r, x_0):
-#         curr_weight = 0
-#         cum_weight = 0
-#         yhat = 0
-
-#         if column_name not in df.columns:
-#             raise ValueError(f"Column '{column_name}' not found in DataFrame")
-
-#         for i in range(0,2+x_0):
-#             y = closedf[column_name].iloc[i]
-#             print("y",y, " ",i)
-#             # Handle cases where the index is out of range
-#             # print("y",y, " ",i)
-#             w = math.pow(1 + (math.pow(i, 2) / (math.pow(h, 2) * 2 * r)), -r)
-#             curr_weight += y * w
-#             cum_weight += w
-#             # print("cur w",curr_weight)
-#             # print("cu ww",cum_weight)
-
-#             yhat=curr_weight / cum_weight
-#             # Update the 'yhat' column in the DataFrame for the current index
-#             closedf.at[i, 'yhat'] = yhat
-#             # yhat_array.append(yhat)
-#             # print("yhat ",yhat)
-#         return closedf
-
-
-
-# ydf = kernel_regression(rsdf.head(60), 8, 8, 25)
-
-def kernel_regression(src, h, r, x_0):
-        curr_weight = 0
-        cum_weight = 0
-        yhat = 0
-        for i in range(0,2+x_0):
-            y = src[i]
-            # Handle cases where the index is out of range
-            # print("y",y, " ",i)
-            w = math.pow(1 + (math.pow(i, 2) / (math.pow(h, 2) * 2 * r)), -r)
-            curr_weight += y * w
-            cum_weight += w
-            # print("cur w",curr_weight)
-            # print("cu ww",cum_weight)
-
-            yhat=curr_weight / cum_weight
-            # print("yhat ",yhat)
-        return yhat
-    
 def kernel_regression(cdf, start, h, r, x_0):
         curr_weight = 0
         cum_weight = 0
@@ -114,26 +50,92 @@ def kernel_regression(cdf, start, h, r, x_0):
             yhat=curr_weight / cum_weight
             # print("yhat ",yhat)
         return round(yhat, 2)
+    
 window = 25
-# yhatdf = kernel_regression(rsdf, 0, 8, 8, window)
-
-# yhatdf
-
-# shatdf = kernel_regression(rsdf, 1, 8, 8, window)
-
-# shatdf
-
-yhat_values = [None] * len(rsdf)
-for i in range(len(rsdf) - window-1):
-    yhat_values[i] = kernel_regression(rsdf, i, 8, 8, window)
+yhat_values = [None] * len(df)
+for i in range(len(df) - window-1):
+    yhat_values[i] = kernel_regression(df, i, 8, 8, window)
 
 
-rsdf['yhat'] = yhat_values
-rsdf.head(25)
-tdf = rsdf.iloc[1:]
-tdf.head()
+df['yhat'] = yhat_values
 
-tyatdf = kernel_regression(tdf, 0, 8, 8, 25)
-tyatdf
-yhat = kernel_regression(closes, 8, 8, 25)
-yhat
+df['prev-yhat'] = df['yhat'].shift(-1)
+
+df.head(25)
+import numpy as np
+
+df['pyhat'] = np.where(df['yhat'] >= df['prev-yhat'], df['yhat'], np.nan)
+df['nyhat'] = np.where(df['yhat'] < df['prev-yhat'], df['yhat'], np.nan)
+df.head(200)
+
+# For plotting
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
+
+# add subplot properties when initializing fig variable
+fig = make_subplots(rows=4, cols=1, shared_xaxes=True,
+                    vertical_spacing=0.01,
+                    row_heights=[0.9,0.3,0.2,0.2])
+
+fig.add_trace(go.Candlestick(
+    x=df.index,
+    open=df['open'], 
+    high=df['high'],
+    low=df['low'], 
+    close=df['close'], 
+))
+
+# df.head()
+
+# Colours for the Bar chart
+colors = ['#FF0000' if row['open'] - row['close'] > 0
+          else '#00FF00' for index, row in df.iterrows()]
+fig.add_trace(go.Bar(x=df.index,
+                     y=df['volume'], marker_color=colors,
+                    ), row=2, col=1)
+
+
+
+
+fig.add_trace(go.Scatter(x=df.index,
+                         y=df['pyhat'],
+                         opacity=0.7,
+                         line=dict(color='green', width=2),
+                         name='MA 5'))
+
+
+fig.add_trace(go.Scatter(x=df.index,
+                         y=df['nyhat'],
+                         opacity=0.7,
+                         line=dict(color='red', width=2),
+                         name='MA 5'))
+
+fig.update_xaxes(
+    rangeselector=dict(
+        buttons=list([
+            dict(count=1, label='1M', step='month', stepmode='backward'),
+            dict(count=3, label='3M', step='month', stepmode='backward'),
+            dict(count=6, label='6M', step='month', stepmode='backward'),
+            dict(count=1, label='1Y', step='year', stepmode='backward'),
+            dict(step='all')
+        ])
+    )
+)
+
+fig.update_layout(height=600, width=1200,
+                  xaxis_rangeslider_visible=False,
+                  xaxis_rangebreaks=[   
+                     dict(bounds=["sat", "mon"]),  
+                    dict(bounds=[15.15, 9.25], pattern="hour")])
+
+
+fig.update_yaxes(title_text="Price", row=1, col=1)
+fig.update_yaxes(title_text="Volume", row=2, col=1)
+
+fig.show()
+
+
+
+# df['MA20'] = df['close'].rolling(window=20).mean()
+# df['MA5'] = df['close'].rolling(window=5).mean()
