@@ -16,8 +16,7 @@ class KernelRegressionStrategy:
         _src = _src[:30]
         c_cp = _src[0]
         # print("r cp data ",_src)
-        yhat1 = MathUtils.kernel_regression(_src, self.lookback_window, self.relative_weighting, self.x_0)
-        yhat2 = MathUtils.kernel_regression(_src, self.lookback_window - self.lag, self.relative_weighting, self.x_0)
+        yhat1 = self.getyaht1(_src)
 
         print("C_cp : ",c_cp )
         print("yhat1 : ",yhat1)
@@ -32,4 +31,11 @@ class KernelRegressionStrategy:
             signal=0
 
         return signal
-       
+    
+    def get_yhat1(self, close_prices):
+
+        _src = close_prices[::-1]
+        _src = _src[:30]
+        # print("r cp data ",_src)
+        yhat1 = MathUtils.kernel_regression(_src, self.lookback_window, self.relative_weighting, self.x_0)
+        return yhat1

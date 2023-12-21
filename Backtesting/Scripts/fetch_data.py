@@ -84,7 +84,7 @@ def historical_bydate(symbol, sd, ed, interval=1):
 # tickers=["NSE:NIFTYBANK-INDEX", "NSE:NIFTY50-INDEX", "NSE:SBIN-EQ"]
 tickers = Tickers.nifty_50_stocks
 
-tickers = ["NSE:NIFTYBANK-INDEX"]
+tickers = ["NSE:NIFTY50-INDEX"]
 from SharedCode.Repository.BlobService.blob_service import BlobService
 
 blob_service = BlobService()
