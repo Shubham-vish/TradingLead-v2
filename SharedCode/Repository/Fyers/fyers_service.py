@@ -1,6 +1,8 @@
 from datetime import datetime, timedelta
 from .fyers_client_factory import FyersClientFactory
 
+from typing import List
+
 from ..Logger.logger_service import LoggerService
 telemetry = LoggerService()
 
@@ -8,84 +10,140 @@ class FyersService:
 
     def __init__(self, client_details):
         self.fyers_client = FyersClientFactory.get_fyers_client(client_details)
-
-    def history(self, data=None):
-        if data is None:
-            data = {
-                "symbol":"NSE:ICICIBANK-EQ",
-                "resolution":"60",
-                "date_format":"1",
-                "range_from":"2023-10-10",
-                "range_to":"2023-12-30",
-                "cont_flag":"1"
-            }
-        return self.fyers_client.history(data)
-
-    def get_close_data(self, ticker_name, tf="60",tel_props={}):
+        
+    def history(self, ticker, range_from, range_to, resolution):
+        telemetry.info(f"Fetching history for {ticker} from {range_from} to {range_to} with resolution {resolution}")
+        
+        """_summary_
+            # "range_from":"2023-10-10",
+            # "range_to":"2023-12-30",
+        """
+        
         try:
-            range_to = datetime.now() + timedelta(days = 2)
-            range_from = datetime.now() + timedelta(days = -4)
-
-            range_from = range_from.strftime('%Y-%m-%d')
-            range_to = range_to.strftime('%Y-%m-%d')
-
             data = {
-                "symbol":ticker_name,
-                "resolution":tf,
+                "symbol":ticker,
+                "resolution":resolution,
                 "date_format":"1",
                 "range_from":range_from,
                 "range_to":range_to,
                 "cont_flag":"1"
             }
-
-            response = self.fyers_client.history(data=data)
-            print("Api response :",response["s"])
-            candles = response["candles"]
-            close_prices = [candle[-2] for candle in candles]
-            stoploss = response["candles"][-1][-3]
-            return close_prices
+            response = self.fyers_client.history(data)
+            telemetry.info(f"Fetched history response for {data}: {response}")
+            return response
         except Exception as e:
-            telemetry.warning(f"Error in fetching history data {data}.\nError: {e}", properties=tel_props)
+            telemetry.exception(f"Error in fetching history: {e}")
+            raise e
 
-    def execute_trade(self, client_id, token, trade_data):
-        # Get the client from the factory
-        # client = self.client_factory.create_client(client_id, token)
+    def place_buy_market(self, ticker_name: str, qty: int, product_type: str, tel_props={}):
+        # It will place market buy order for the given ticker and qty
+        
+        """
+            # Able to place buy order in CNC
+            
+            ticker_name = "NSE:LEMONTREE-EQ"
+            qty = 1
+            productType = "CNC"
+            fyers_service.place_buy_market(ticker_name, qty, productType, tel_props)
+            
+            
+            # Able to place buy order in Margin Nifty Fut Order for 1 lot
+            
+            ticker_name = "NSE:NIFTY24JANFUT"
+            qty = 50
+            productType = "MARGIN"
+            fyers_service.place_buy_market(ticker_name, qty, productType, tel_props)
+        """
+        tel_props.update({"ticker_name": ticker_name, "qty": qty, "product_type": product_type, "order_type": "market", "side": "buy", })
+        try:
+            data = {
+                "symbol":ticker_name,
+                "qty":qty,
+                "type":2,
+                "side":1,
+                "productType":product_type,
+                "stoploss": 0,
+                "stopprice": 0,
+                "validity":"DAY",
+                "disclosedQty":0,
+                "offlineOrder":False,
+            }
+            response = self.fyers_client.place_order(data)
+            telemetry.info(f"Placing buy market response for {data}: {response}", tel_props)
+            return response
+        except Exception as e:
+            telemetry.exception(f"Error in placing buy market: {data} : {e}", tel_props)
+            raise e
+    
+    def execute_stop_loss_for_buy_market(self, ticker_name:str, qty:int, stopprice:float, product_type:str, tel_props={}):
+        
+        """_summary_
+            # Able to set stoploss for Nifty future buy position, Once the stopprice is reached the order gets executed 
+            # but if position is buy position is not there it will create a nakes sell position
+            
+            
+            ticker_name = "NSE:NIFTY24JANFUT"
+            qty = 50
+            productType = "MARGIN"
+            fyers_service.execute_stop_loss_for_buy_market(ticker_name, qty, 21400, productType, tel_props)
+            
+            ticker_name = "NSE:LEMONTREE-EQ"
+            qty = 1
+            productType = "CNC"
+            # Able to set stoploss for buy CNC order, once the stopprice is reached the order gets executed
+            # This doesnt get executed when there is no holding or active position for given quantity
+            fyers_service.execute_stop_loss_for_buy_market(ticker_name, qty, 121.7, productType, tel_props)
+        """
+        
+        
+        tel_props.update({"ticker_name": ticker_name, "qty": qty, "product_type": product_type, "order_type": "stoploss", "side": "buy", })
+        try:
+            data = {
+                    "symbol":ticker_name,
+                    "qty":qty,
+                    "type":3,
+                    "side":-1,
+                    "productType":product_type,
+                    "stoploss": 0,
+                    "stopprice": stopprice,
+                    "validity":"DAY",
+                    "disclosedQty":0,
+                    "offlineOrder":False,
+                }
 
-        # Placeholder for actual trade execution logic
-        # For example, using client to place an order
-        # response = client.place_order(trade_data)
-        # return response
+            respnose = self.fyers_client.place_order(data=data)
+            telemetry.info(f"Placing stoploss response for {data}: {respnose}", tel_props)
+            return respnose
+        except Exception as e:
+            telemetry.exception(f"Error in placing stoploss: {data} : {e}", tel_props)
+            raise
+    
+    def exit_positions(self, position_ids: List[str], tel_props):
+        tel_props.update({"position_ids": position_ids})
+        try:
+            if not position_ids:
+                raise ValueError("No position IDs provided")
 
-        # For demonstration, just printing a message
-        print(f"Executing trade for client {client_id} with data: {trade_data}")
-
-    def cancel_trade(self, client_id, token, trade_id):
-        # Get the client from the factory
-        # client = self.client_factory.create_client(client_id, token)
-
-        # Placeholder for actual trade cancellation logic
-        # For example, using client to cancel an order
-        # response = client.cancel_order(trade_id)
-        # return response
-
-        # For demonstration, just printing a message
-        print(f"Cancelling trade {trade_id} for client {client_id}")
-
-# # Example usage:
-# # Initialize the client factory
-# client_factory = FyersClientFactory()
-
-# # Create an instance of FyersService
-# fyers_service = FyersService(client_factory)
-
-# # Example client and trade data
-# client_id = "user123"
-# token = "token_abc"
-# trade_data = {"symbol": "NSE:RELIANCE", "quantity": 10, "type": "BUY"}
-
-# # Execute a trade
-# fyers_service.execute_trade(client_id, token, trade_data)
-
-# # Cancel a trade
-# trade_id = "trade123"
-# fyers_service.cancel_trade(client_id, token, trade_id)
+            data = {"id": position_ids}
+            response = self.fyers_client.exit_positions(data=data)
+            telemetry.info(f"Exiting positions response for {data}: {response}", tel_props)
+            return response
+        except Exception as e:
+            telemetry.exception(f"Error in exiting positions: {e}", tel_props)
+            raise
+    
+    def exit_all_positions(self, tel_props):
+        
+        """_summary_
+            # //Able to exit all positions
+            fyers_service.exit_all_positions(tel_props)
+        """
+        tel_props.update({"position_ids": "all"})
+        try:
+            data = {}
+            response = self.fyers_client.exit_positions(data)
+            telemetry.log(f"Exiting all positions response: {response}", tel_props)
+            return response
+        except Exception as e:
+            telemetry.exception(f"Error in exiting positions: {e}", tel_props)
+            raise e

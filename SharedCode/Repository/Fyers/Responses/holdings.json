@@ -1,0 +1,68 @@
+{
+  "code": 200,
+  "message": "",
+  "s": "ok",
+  "overall": {
+    "count_total": 3,
+    "pnl_perc": 5.3174,
+    "total_current_value": 807.0999999999999,
+    "total_investment": 766.35,
+    "total_pl": 40.75000000000003
+  },
+  "holdings": [
+    {
+      "costPrice": 122.1,
+      "id": 0,
+      "fyToken": "10100000004717",
+      "symbol": "NSE:GAIL-EQ",
+      "isin": "INE129A01019",
+      "quantity": 1,
+      "exchange": 10,
+      "segment": 10,
+      "qty_t1": 0,
+      "remainingQuantity": 1,
+      "collateralQuantity": 0,
+      "remainingPledgeQuantity": 1,
+      "pl": 29.400000000000006,
+      "ltp": 151.5,
+      "marketVal": 151.5,
+      "holdingType": "HLD"
+    },
+    {
+      "costPrice": 402.25,
+      "id": 1,
+      "fyToken": "101000000017869",
+      "symbol": "NSE:JSWENERGY-EQ",
+      "isin": "INE121E01018",
+      "quantity": 1,
+      "exchange": 10,
+      "segment": 10,
+      "qty_t1": 0,
+      "remainingQuantity": 1,
+      "collateralQuantity": 0,
+      "remainingPledgeQuantity": 1,
+      "pl": 7.050000000000011,
+      "ltp": 409.3,
+      "marketVal": 409.3,
+      "holdingType": "HLD"
+    },
+    {
+      "costPrice": 242,
+      "id": 2,
+      "fyToken": "101000000011373",
+      "symbol": "NSE:BIOCON-EQ",
+      "isin": "INE376G01013",
+      "quantity": 1,
+      "exchange": 10,
+      "segment": 10,
+      "qty_t1": 0,
+      "remainingQuantity": 1,
+      "collateralQuantity": 0,
+      "remainingPledgeQuantity": 1,
+      "pl": 4.300000000000011,
+      "ltp": 246.3,
+      "marketVal": 246.3,
+      "holdingType": "HLD"
+    }
+  ]
+}
