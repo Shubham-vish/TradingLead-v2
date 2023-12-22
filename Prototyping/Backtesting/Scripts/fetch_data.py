@@ -66,22 +66,6 @@ def historical_bydate(symbol, sd, ed, interval=1):
     return df
 
 
-# sd  = date(2017,7,3)
-# # sd = datetime.now()
-# dat = sd.strftime("%Y-%m-%d")
-# dat1 = (sd - timedelta(days=50)).strftime("%Y-%m-%d")
-# data = {"symbol":"NSE:SBIN-EQ","resolution":"1","date_format":"1","range_from":dat1,"range_to":dat,"cont_flag":"1"}
-# x = fyerService.history(data)
-# df = pd.DataFrame.from_dict(x['candles'])
-# cols = ['datetime','open','high','low','close','volume']
-# df.columns = cols
-# df['datetime'] = pd.to_datetime(df['datetime'],unit = "s")
-# df['datetime'] = df['datetime'].dt.tz_localize('utc').dt.tz_convert('Asia/Kolkata')
-# df['datetime'] = df['datetime'].dt.tz_localize(None)
-# df = df.set_index('datetime')
-
-
-# tickers=["NSE:NIFTYBANK-INDEX", "NSE:NIFTY50-INDEX", "NSE:SBIN-EQ"]
 tickers = Tickers.nifty_50_stocks
 
 tickers = ["NSE:NIFTY50-INDEX"]
