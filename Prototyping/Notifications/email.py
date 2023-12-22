@@ -2,20 +2,25 @@
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.join('../..')))
+sys.path.append(os.path.abspath(os.path.join("../..")))
 
-from Notebooks.setupConfig import setup_config
+from Prototyping.setupConfig import setup_config
+
 setup_config()
 # Above lines are only for local notebook testing. Not to be used in production.
 
 
 from SharedCode.Repository.Notifications.Email.email_service import EmailService
+
 email_service = EmailService()
 
 message = {
     "senderAddress": "alerts@tradinglead.in",
-    "recipients":  {
-        "to": [{"address": "shubh.v@outlook.com" }, {"address": "shubhamvishwakarma2001@gmail.com"}],
+    "recipients": {
+        "to": [
+            {"address": "shubh.v@outlook.com"},
+            {"address": "shubhamvishwakarma2001@gmail.com"},
+        ],
     },
     "content": {
         "subject": "Alerts Hola Testing Tradinglead.in Alert Notification - Significant Ticker Movements Detected",
@@ -49,8 +54,8 @@ message = {
             "<p>Regards,</p>"
             "<p>Trading Lead Team</p>"
             "</body></html>"
-        )
-    }
+        ),
+    },
 }
 
 email_service.send_email(message)

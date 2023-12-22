@@ -4,7 +4,7 @@ import sys
 # Below code is for testing
 sys.path.append(os.path.abspath(os.path.join("../..")))
 
-from Notebooks.setupConfig import setup_config
+from Prototyping.setupConfig import setup_config
 
 setup_config()
 
@@ -47,9 +47,11 @@ qty = 50
 productType = "MARGIN"
 fyers_service.place_buy_market(ticker_name, qty, productType, tel_props)
 
-# Able to set stoploss for Nifty future buy position, Once the stopprice is reached the order gets executed 
+# Able to set stoploss for Nifty future buy position, Once the stopprice is reached the order gets executed
 # but if position is buy position is not there it will create a nakes sell position
-fyers_service.execute_stop_loss_for_buy_market(ticker_name, qty, 21400, productType, tel_props)
+fyers_service.execute_stop_loss_for_buy_market(
+    ticker_name, qty, 21400, productType, tel_props
+)
 
 
 # //Able to exit all positions
@@ -64,23 +66,25 @@ fyers_service.place_buy_market(ticker_name, qty, productType, tel_props)
 
 # Able to set stoploss for buy CNC order, once the stopprice is reached the order gets executed
 # This doesnt get executed when there is no holding or active position for given quantity
-fyers_service.execute_stop_loss_for_buy_market(ticker_name, qty, 121.7, productType, tel_props)
+fyers_service.execute_stop_loss_for_buy_market(
+    ticker_name, qty, 121.7, productType, tel_props
+)
 
 fyers_client.positions()
 
 currentprice = 21570
 data = {
-        "symbol":ticker_name,
-        "qty":qty,
-        "type":3,
-        "side":-1,
-        "productType":productType,
-        "stoploss": 0,
-        "stopprice": 21480,
-        "validity":"DAY",
-        "disclosedQty":0,
-        "offlineOrder":False,
-    }
+    "symbol": ticker_name,
+    "qty": qty,
+    "type": 3,
+    "side": -1,
+    "productType": productType,
+    "stoploss": 0,
+    "stopprice": 21480,
+    "validity": "DAY",
+    "disclosedQty": 0,
+    "offlineOrder": False,
+}
 
 response = fyers_client.place_order(data=data)
 
@@ -90,17 +94,17 @@ productType = "MARGIN"
 currentprice = 21575
 # fired
 data = {
-        "symbol":ticker_name,
-        "qty":qty,
-        "type":3,
-        "side":1,
-        "productType":productType,
-        "stoploss": 0,
-        "stopprice": 21460,
-        "validity":"DAY",
-        "disclosedQty":0,
-        "offlineOrder":False,
-    }
+    "symbol": ticker_name,
+    "qty": qty,
+    "type": 3,
+    "side": 1,
+    "productType": productType,
+    "stoploss": 0,
+    "stopprice": 21460,
+    "validity": "DAY",
+    "disclosedQty": 0,
+    "offlineOrder": False,
+}
 
 response = fyers_client.place_order(data=data)
 
