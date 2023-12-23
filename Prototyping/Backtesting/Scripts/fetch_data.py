@@ -46,16 +46,8 @@ import pandas as pd
 from datetime import datetime, timedelta, date
 
 
-def historical_bydate(symbol, sd, ed, interval=1):
-    data = {
-        "symbol": symbol,
-        "resolution": "1",
-        "date_format": "1",
-        "range_from": str(sd),
-        "range_to": str(ed),
-        "cont_flag": "1",
-    }
-    nx = fyerService.history(data)
+def historical_bydate(symbol, sd, ed, resolution="1"):
+    nx = fyerService.history(symbol, str(sd), str(ed),resolution)
     cols = ["datetime", "open", "high", "low", "close", "volume"]
     df = pd.DataFrame.from_dict(nx["candles"])
     df.columns = cols
@@ -68,7 +60,6 @@ def historical_bydate(symbol, sd, ed, interval=1):
 
 tickers = Tickers.nifty_50_stocks
 
-tickers = ["NSE:NIFTY50-INDEX"]
 from SharedCode.Repository.BlobService.blob_service import BlobService
 
 blob_service = BlobService()

@@ -6,7 +6,7 @@ import pandas as pd
 class StockChart:
 
     @staticmethod
-    def plot(df:pd.DataFrame, ticker:str, timeframe:str):
+    def plot_chart_with_yhat(df:pd.DataFrame, ticker:str, timeframe:str):
         # Set up the subplot structure
         fig = make_subplots(
             rows=2, 
