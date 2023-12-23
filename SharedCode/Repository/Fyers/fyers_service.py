@@ -13,40 +13,16 @@ from .Models.NetPositionResponse import (
     NetPositionResponse,
     NetPosition,
 )
-
+import pandas as pd
+from datetime import timedelta
 telemetry = LoggerService()
 
 
 class FyersService:
     def __init__(self, client_details):
         self.fyers_client = FyersClientFactory.get_fyers_client(client_details)
-
-    def history(self, ticker, range_from, range_to, resolution):
-        telemetry.info(
-            f"Fetching history for {ticker} from {range_from} to {range_to} with resolution {resolution}"
-        )
-
-        """_summary_
-            # "range_from":"2023-10-10",
-            # "range_to":"2023-12-30",
-        """
-
-        try:
-            data = {
-                "symbol": ticker,
-                "resolution": resolution,
-                "date_format": "1",
-                "range_from": range_from,
-                "range_to": range_to,
-                "cont_flag": "1",
-            }
-            response = self.fyers_client.history(data)
-            telemetry.info(f"Fetched history response for {data}: {response}")
-            return response
-        except Exception as e:
-            telemetry.exception(f"Error in fetching history: {e}")
-            raise e
-
+        
+    
     def place_buy_market(
         self, ticker_name: str, qty: int, product_type: str, tel_props={}
     ):
@@ -200,3 +176,66 @@ class FyersService:
         except Exception as e:
             telemetry.exception(f"Error in exiting positions: {e}", tel_props)
             raise e
+
+    def history(self, ticker, range_from, range_to, resolution, tel_props):
+        telemetry.info(
+            f"Fetching history for {ticker} from {range_from} to {range_to} with resolution {resolution}"
+        )
+
+        """_summary_
+            # "range_from":"2023-10-10",
+            # "range_to":"2023-12-30",
+        """
+
+        try:
+            data = {
+                "symbol": ticker,
+                "resolution": resolution,
+                "date_format": "1",
+                "range_from": range_from,
+                "range_to": range_to,
+                "cont_flag": "1",
+            }
+            response = self.fyers_client.history(data)
+            telemetry.info(f"Fetched history response for {data}: {response}")
+            
+            if response["s"] == Response.OK:
+                cols = ["datetime", "open", "high", "low", "close", "volume"]
+                df = pd.DataFrame.from_dict(response["candles"])
+                df.columns = cols
+                df["datetime"] = pd.to_datetime(df["datetime"], unit="s")
+                df["datetime"] = df["datetime"].dt.tz_localize("utc").dt.tz_convert("Asia/Kolkata")
+                df["datetime"] = df["datetime"].dt.tz_localize(None)
+                df = df.set_index("datetime")
+                return df
+            else:
+                telemetry.exception(f"Invalid Response: {response}", tel_props)
+            return response
+        except Exception as e:
+            telemetry.exception(f"Error in fetching history: {e}")
+            raise e
+
+    def fetch_deep_history(self, ticker, range_from, range_to, resolution, tel_props):
+        tel_props.update({"action": "fetch_deep_history", "ticker": ticker, "range_from": range_from, "range_to": range_to, "resolution": resolution})
+        
+        telemetry.info(
+            f"Fetching history for {ticker} from {range_from} to {range_to} with resolution {resolution}"
+        , tel_props)
+        
+        df = pd.DataFrame()
+        sd = range_from
+        enddate = range_to
+
+        n = abs((sd - enddate).days)
+        ab = None
+        while ab == None:
+            sd = enddate - timedelta(days=n)
+            ed = (sd + timedelta(days=99 if n > 100 else n)).strftime("%Y-%m-%d")
+            sd = sd.strftime("%Y-%m-%d")
+            dx = self.history(ticker, sd, ed, resolution, tel_props)
+            df = pd.concat([df, dx])
+            n = n - 100 if n > 100 else n - n
+            telemetry.info(f"n : {n}", tel_props)
+            if n == 0:
+                ab = "done"
+        return df
