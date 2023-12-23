@@ -63,3 +63,19 @@ class Constants:
     CACHE_KEY = "CacheKey"
 
     communication_service_endpoint = "CommunicationServiceEndpoint"
+
+
+    color_green = "#00FF00"
+    color_red = "#FF0000"
+    color_black = "#000000"
+    color_white = "#FFFFFF"
+    color_blue = "#0000FF"
+    color_yellow = "#FFFF00"
+    color_pink = "#FFC0CB"
+    
+    
+    timeframe_30t = "30T"
+    timeframe_hourly = "1H"
+    timeframe_daily = "1D"
+    timeframe_weekly = "1W"
+    timeframe_monthly = "1M"

@@ -1,41 +1,45 @@
 from SharedCode.Utils.math_utils import MathUtils
+import pandas as pd
+import math
+import numpy as np
 
 
 class KernelRegressionStrategy:
     def __init__(self):
-        self.lookback_window = 8
-        self.relative_weighting = 8
-        self.x_0 = 25
-        self.lag = 2
-        self.smooth_colors = False
+        self.bandwidth = 8
+        self.exponent = 8
+        self.window = 25
 
-    def get_order_signal(self, close_prices, position):
-
-        signal = 0
-        _src = close_prices[::-1]
-        _src = _src[:30]
-        c_cp = _src[0]
-        # print("r cp data ",_src)
-        yhat1 = self.getyaht1(_src)
-
-        print("C_cp : ",c_cp )
-        print("yhat1 : ",yhat1)
-        print("yhat2 : ",yhat2)
-        # if(c_cp > yhat2 and c_cp < yhat1):
-        #   signal = 0
-        if(c_cp > yhat1 and position==0):
-            signal=1
-        elif(c_cp < yhat1 and position==1):
-            signal = -1
-        else:
-            signal=0
-
-        return signal
+    def kernel_regression_df(self, cdf: pd.DataFrame, column:str, index:int, h:int, r:int, window:int):
+        curr_weight = 0
+        cum_weight = 0
+        yhat = 0
+        for i in range(0, 2 + window):
+            if (i + index) < len(cdf):
+                y = cdf.iloc[i + index][column]
+                w = math.pow(1 + (math.pow(i, 2) / (math.pow(h, 2) * 2 * r)), -r)
+                curr_weight += y * w
+                cum_weight += w
+                yhat = curr_weight / cum_weight if cum_weight != 0 else 0
+        return round(yhat, 2)
     
-    def get_yhat1(self, close_prices):
+    
+    def calculate_yhat1(self, df:pd.DataFrame, column:str):
+        yhat_values = [None] * len(df)
+        for i in range(len(df) - self.window - 1):
+            yhat_values[i] = self.kernel_regression_df(df, column, i, self.bandwidth, self.exponent, self.window)
+        return yhat_values
+    
+    def calculate_yhat2(self, df:pd.DataFrame, column:str):
+        yhat_values = [None] * len(df)
+        for i in range(len(df) - self.window - 1):
+            yhat_values[i] = self.kernel_regression_df(df, column, i, self.bandwidth - 2, self.exponent, self.window)
+        return yhat_values
+    
+    def get_yhat1_with_signals(self, df:pd.DataFrame, column:str):
+        df["yhat1"] = self.calculate_yhat1(df, column)
+        df["prev-yhat"] = df["yhat1"].shift(-1)
 
-        _src = close_prices[::-1]
-        _src = _src[:30]
-        # print("r cp data ",_src)
-        yhat1 = MathUtils.kernel_regression(_src, self.lookback_window, self.relative_weighting, self.x_0)
-        return yhat1
+        df["pyhat"] = np.where(df["yhat1"] >= df["prev-yhat"], df["yhat1"], np.nan)
+        df["nyhat"] = np.where(df["yhat1"] < df["prev-yhat"], df["yhat1"], np.nan)
+        return df

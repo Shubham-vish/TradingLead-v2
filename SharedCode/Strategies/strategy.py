@@ -10,6 +10,8 @@ lag = 2
 smooth_colors = False
 
 
+
+
 def get_order_signal(close_prices,position):
 
     try:
