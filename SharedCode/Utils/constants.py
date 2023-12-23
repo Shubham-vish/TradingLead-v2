@@ -21,6 +21,7 @@ class Constants:
     access_token_generator_service = "AccessTokenGeneratorService"
     strategy_executor_service = "StrategyExecutorService"
     fetch_store_participants_data_service = "FetchStoreParticipantsDataService"
+    fetch_store_history_data_service = "FetchStoreHistoryDataService"
 
     # telemetry custom dimensions keys
     username = "username"

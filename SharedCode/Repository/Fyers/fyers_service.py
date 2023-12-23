@@ -197,9 +197,10 @@ class FyersService:
                 "cont_flag": "1",
             }
             response = self.fyers_client.history(data)
-            telemetry.info(f"Fetched history response for {data}: {response}")
             
             if response["s"] == Response.OK:
+                telemetry.info(f"Fetched history response OK for {data}")
+                
                 cols = ["datetime", "open", "high", "low", "close", "volume"]
                 df = pd.DataFrame.from_dict(response["candles"])
                 df.columns = cols

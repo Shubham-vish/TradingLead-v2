@@ -59,3 +59,4 @@ for ticker in tickers:
 # tickers = Tickers.nifty_50_stocks
 # cdf = blob_service.get_ticker_history(tickers[0])
 # cdf.head()
+

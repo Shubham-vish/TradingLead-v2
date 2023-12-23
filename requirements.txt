@@ -19,4 +19,4 @@ opencensus-ext-azure
 redis
 azure-storage-blob
 azure-communication-email
-TA-Lib
+# TA-Lib
