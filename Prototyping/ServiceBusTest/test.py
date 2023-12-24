@@ -4,19 +4,16 @@ import sys
 
 sys.path.append(os.path.abspath(os.path.join('../..')))
 
-from Notebooks.setupConfig import setup_config
+from Prototyping.setupConfig import setup_config
 setup_config()
 # Above lines are only for local notebook testing. Not to be used in production.
 # from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
-# CONNECTION_STR = 'Endpoint=sb://sb-tradingtest.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=oEGc4wn7YRpYMLdEeqqfu/S/4Zq96CMHe+ASbAPsQT8='
 
-# servicebus_client = ServiceBusClient.from_connection_string( conn_str=CONNECTION_STR)
-
-from .servicebus_service import ServiceBusService
+from SharedCode.Repository.ServiceBus.servicebus_service import ServiceBusService
 queue_name = "testingQueue"
 topic_name = "testingTopic"
-message = "hello"
+message = "hello Jaishree"
 
 # #sender =  servicebus_client.get_queue_sender(queue_name)
 # sender =  servicebus_client.get_topic_sender(topic_name)
