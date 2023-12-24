@@ -7,14 +7,13 @@ from SharedCode.Repository.CosmosDB.CosmosUtils.cosmos_db_service import CosmosD
 from SharedCode.Repository.KeyVault.keyvault_service import KeyVaultService
 
 telemetry = LoggerService()
+users_repo = UserRepository()
 
-kv_service = KeyVaultService()
-database_id = kv_service.get_secret(Constants.DATABASE_ID)
-users_container_name = kv_service.get_secret(Constants.USERS_CONTAINER_NAME)
-cosmos_db_service = CosmosDbService(database_id)
-users_repo = UserRepository(cosmos_db_service, users_container_name)
-
-
+class User:
+    def __init__(self, user_id, email, name):
+        self.user_id = user_id
+        self.email = email
+        self.name = name
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     
@@ -40,7 +39,8 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         })
         
         if user_id:
-            users_repo.store_user(user_id, email, name, telemetry, tel_props)
+            user = User(user_id, email, name)
+            users_repo.store_user(user, telemetry, tel_props)
             telemetry.info('User stored successfully.', tel_props)
             return func.HttpResponse("User stored successfully.", status_code=200)
         else:

@@ -14,6 +14,25 @@ class StoplossesRepository:
         cosmos_db_service = CosmosDbService(database_id)
         self.container = cosmos_db_service.get_container(stop_loss_container_name)
 
+    def get_all_stoplosses(self, telemetry:LoggerService, tel_props) -> List[UserStoplosses]:
+        query = "SELECT * FROM c"
+        result = self.container.query_items(query, enable_cross_partition_query=True)
+        tel_props.update({Constants.COSMOS_QUERY: query, "action": "get_all_stoplosses"})
+        result_list = list(result)
+        if len(result_list) == 0:
+            telemetry.info("No StopLosses found.", tel_props)
+            return None
+        else:
+            telemetry.info("StopLosses found.", tel_props)
+            user_stoplosses_list = []
+            for item in result_list:
+                try:
+                    user_stoplosses = UserStoplosses.from_dict(item)
+                    user_stoplosses_list.append(user_stoplosses)
+                except Exception as e:
+                    telemetry.error(f"Error occurred while processing user stoplosses doc: {item}, error: {str(e)}", tel_props)
+            return user_stoplosses_list
+    
     def create_user_stoplosses(self, stoploss):
         self.container.create_item(stoploss)
 

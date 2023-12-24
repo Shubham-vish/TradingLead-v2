@@ -1,44 +1,81 @@
 import uuid
-
 from azure.cosmos import PartitionKey
 from SharedCode.Repository.CosmosDB.CosmosUtils.cosmos_db_service import CosmosDbService
 from SharedCode.Repository.Logger.logger_service import LoggerService
+from SharedCode.Models.user import User
+from SharedCode.Repository.KeyVault.keyvault_service import KeyVaultService
+from SharedCode.Utils.constants import Constants
 
 class UserRepository:
-    def __init__(self, cosmos_service:CosmosDbService, container_name):
-        self.container = cosmos_service.get_container(container_name)
+    def __init__(self):
+        kv_service = KeyVaultService()
+        self.database_id = kv_service.get_secret(Constants.DATABASE_ID)
+        self.users_container_name = kv_service.get_secret(Constants.USERS_CONTAINER_NAME)
+        self.cosmos_db_service = CosmosDbService(self.database_id)
+        self.container = self.cosmos_db_service.get_container(self.users_container_name)
 
-    def create_user(self, user):
-        user["id"] = str(uuid.uuid4())
-        self.container.create_item(user)
+    def create_user(self, user: User):
+        doc = user.to_dict()
+        self.container.create_item(doc)
 
-    def get_user(self, user_id):
+    def get_user(self, user_id, telemetry: LoggerService, tel_props):
+        query = "SELECT * FROM c WHERE c.UserId = @user_id"
+        parameters = [{"name": "@user_id", "value": user_id}]
         
-        query = f"SELECT * FROM c WHERE c.UserId = '{user_id}'"
-        result = self.container.query_items(query, enable_cross_partition_query=True)
-        return list(result)
+        try:
+            result = self.container.query_items(query, parameters=parameters, enable_cross_partition_query=True)
+            users = list(result)
+            
+            if len(users) == 0:
+                telemetry.info(f"No user found for user_id: {user_id}", tel_props)
+                return None
+            
+            if len(users) > 1:
+                telemetry.exception(f"Multiple users found for user_id: {user_id}", tel_props)
+            
+            telemetry.info(f"User fetched: {users}", tel_props)
+            return users[0]
+        except Exception as e:
+            telemetry.exception(f"Error occurred while fetching user: {str(e)}", tel_props)
+            return None
 
-    def update_user(self, user):
-        self.container.upsert_item(user)
+    def update_user(self, user: User):
+        try:
+            self.container.upsert_item(user)
+        except Exception as e:
+            print(f"Error occurred while updating user: {str(e)}")
 
     def delete_user(self, user_id):
-        self.container.delete_item(user_id, PartitionKey(user_id))
+        try:
+            self.container.delete_item(user_id, PartitionKey(user_id))
+        except Exception as e:
+            print(f"Error occurred while deleting user: {str(e)}")
 
-    def store_user(self, user_id, name, email, telemetry:LoggerService, tel_props):
-        user = {
-            "UserId": user_id,
-            "name": name,
-            "email": email
-        }
+    def store_user(self, user: User, telemetry: LoggerService, tel_props):
         telemetry.info(f"Storing user: {user}", tel_props)
-        existing_user = self.get_user(user_id)
+        existing_user = self.get_user(user.user_id, telemetry, tel_props)
+        
         if existing_user:
-            telemetry.info(f"User {user_id} already exists. Updating user.", tel_props)
-            existing_user["name"] = name
-            existing_user["email"] = email
+            telemetry.info(f"User {user.user_id} already exists. Updating user.", tel_props)
+            existing_user.update(user)
             self.update_user(existing_user)
         else:
-            telemetry.info(f"User {user_id} does not exist. Creating user.", tel_props)
+            telemetry.info(f"User {user.user_id} does not exist. Creating user.", tel_props)
+            self.create_user(user)
+
+    def store_user(self, user:User, telemetry:LoggerService, tel_props):
+        telemetry.info(f"Storing user: {user}", tel_props)
+        existing_user = self.get_user(user.user_id, telemetry, tel_props)
+        if existing_user:
+            telemetry.info(f"User {user.user_id} already exists. Updating user.", tel_props)
+            
+            existing_user["name"] = user.name
+            existing_user["email"] = user.email
+            existing_user["kv_secret_name"] = user.kv_secret_name
+            existing_user["fyers_user_name"] = user.fyers_user_name
+            self.update_user(existing_user)
+        else:
+            telemetry.info(f"User {user.user_id} does not exist. Creating user.", tel_props)
             self.create_user(user)
         
     

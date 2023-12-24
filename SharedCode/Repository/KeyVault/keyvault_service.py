@@ -17,3 +17,10 @@ class KeyVaultService:
         fyers_details_json = self.get_secret(fyer_users[index]["KvSecretName"])
         fyers_details = json.loads(fyers_details_json)
         return fyers_details
+
+    def get_fyers_user_by_user_id(self, user_id:str):
+        fyer_users_json = self.get_secret("FyerUserDetails")
+        fyer_users = json.loads(fyer_users_json)
+        fyers_details_json = self.get_secret(fyer_users[user_id]["KvSecretName"])
+        fyers_details = json.loads(fyers_details_json)
+        return fyers_details

@@ -46,18 +46,20 @@ tel_props = {
 stoploss_repo = StoplossesRepository()
 
 stoplosses = [
-    Stoploss("dfasdf", "normal", "AAPL", 150.0, "2022-01-01", "2022-01-10"),
-    Stoploss("sdsfd", "lin", "GOOG", 2000.0, "2022-01-05", "2022-01-15"),
+    Stoploss("dfasdf", "normal", "AAPL", 150.0),
+    Stoploss("sdsfd", "line", "GOOG", 2000.0),
     Stoploss("sdfsd", "trend", "MSFT", 300.0, "2022-01-10", "2022-01-20")
 ]
 
-stoploss = Stoploss("dfasdf", "normal", "AAPL", 150.0, "2022-01-01", "2022-01-10")
+stoploss = Stoploss("dfasdf", "normal", "AAPL", 150.0, check_at="30t")
 
-stoploss_repo.store_user_stoplosses("testuser", stoplosses[2], telemetry, tel_props)
+stoploss.price = 200.0
+stoploss_repo.store_user_stoplosses("testuser", stoploss, telemetry, tel_props)
 
-stoploss_repo.get_user_stoplosses("testuser", telemetry, tel_props)
+userStopLosses = stoploss_repo.get_user_stoplosses("testuser", telemetry, tel_props)
 
-stoploss_repo.delete_user_stoploss("testuser", stoploss.id, telemetry, tel_props)
+UserStoplosses.from_dict(userStopLosses)
+stoploss_repo.delete_user_stoploss("testuser", "sdfsd", telemetry, tel_props)
 
 user_stoplosses = UserStoplosses("testuser", "fyers_username", stoplosses)
 user_stoplosses.to_dict()

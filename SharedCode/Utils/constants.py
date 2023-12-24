@@ -23,6 +23,7 @@ class Constants:
     strategy_executor_service = "StrategyExecutorService"
     fetch_store_participants_data_service = "FetchStoreParticipantsDataService"
     fetch_store_history_data_service = "FetchStoreHistoryDataService"
+    market_start_executor_services = "MarketStartExecutorService"
 
     # telemetry custom dimensions keys
     username = "username"
@@ -86,3 +87,6 @@ class Constants:
     
     USER_ID = "user_id"
     STOPLOSS_ID = "stoploss_id" 
+    
+    kv_secret_name = "kv_secret_name"
+    fyers_user_name = "fyers_user_name"

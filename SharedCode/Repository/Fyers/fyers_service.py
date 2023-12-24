@@ -13,6 +13,8 @@ from .Models.NetPositionResponse import (
     NetPositionResponse,
     NetPosition,
 )
+
+from SharedCode.Models.UserStoplosses import Stoploss
 import pandas as pd
 from datetime import timedelta
 telemetry = LoggerService()
@@ -240,3 +242,21 @@ class FyersService:
             if n == 0:
                 ab = "done"
         return df
+    
+    def set_stop_losses(self, stoplosses :List[Stoploss], tel_props):
+        
+        tel_props.update({"action": "setStoplosses"})
+        
+        positions = self.get_positions(tel_props)
+        telemetry.info(f"Positions: {positions}", tel_props)
+        # holdings = self.get_holdings(tel_props)
+        
+        
+        
+        for stoploss in stoplosses:
+            telemetry.info(f"Processing stoploss: {stoploss}", tel_props)    
+            # ticker = stoploss.ticker
+            # qty = stoploss.qty
+            # product_type = ProductType.ma
+            # stopprice = stoploss.price
+            # self.place_stoploss_for_buy_market_order(ticker, qty, stopprice, product_type, tel_props)
