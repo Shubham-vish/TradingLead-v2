@@ -1,0 +1,16 @@
+[
+    {
+        "ticker": "NSE:NIFTY50-INDEX",
+        "value": {
+            "symbol": "NSE:NIFTY24JANFUT",
+            "qty": 50
+        }
+    },
+    {
+        "ticker": "NSE:NIFTYBANK-INDEX",
+        "value": {
+            "symbol": "NSE:BANKNIFTY24JANFUT",
+            "qty": 15
+        }
+    }
+]

@@ -31,5 +31,8 @@ def main(mytimer: func.TimerRequest , context: func.Context) -> None:
     
     fetch_store_data_for_n_days(number_of_days, tel_props)
     
+    utc_timestamp = datetime.datetime.utcnow().replace(
+            tzinfo=datetime.timezone.utc).isoformat()
+    
     telemetry.info(f'Python timer trigger function FetchStoreParticipantsData ran at {utc_timestamp} Completed', tel_props)
 

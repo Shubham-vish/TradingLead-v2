@@ -77,6 +77,11 @@ class FunctionUtils:
 
         return resampled_df
 
+
+    # utils.are_dataframes_identical(
+    #     utils.resample_to_timeframe(fdf, "60T"),
+    #     utils.resample_to_timeframe(fdf, "1H"),
+    # )
     @staticmethod
     def are_dataframes_identical(df1, df2):
         """

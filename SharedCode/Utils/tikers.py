@@ -1,6 +1,7 @@
 class Tickers:
     nifty_50_stocks = [
         "NSE:NIFTY50-INDEX",
+        "NSE:NIFTYBANK-INDEX",
         "NSE:ADANIENT-EQ",
         "NSE:ADANIPORTS-EQ",
         "NSE:APOLLOHOSP-EQ",
@@ -51,5 +52,5 @@ class Tickers:
         "NSE:UPL-EQ",
         "NSE:ULTRACEMCO-EQ",
         "NSE:WIPRO-EQ",
-        "NSE:NIFTYBANK-INDEX",
+        
     ]

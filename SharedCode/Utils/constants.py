@@ -4,22 +4,26 @@ class Constants:
     ENV = "Env"
     VERSION = "Version"
     SERVICE = "Service"
-    
+
     # Telemetry property constants (for environment variables)
     telemetry_app = "TelemetryPropApp"
     telemetry_env = "TelemetryPropEnv"
     telemetry_version = "TelemetryPropVersion"
     telemetry_service = "TelemetryPropService"
-    
-    number_of_days_to_fetch_participation_data = "NumberOfDataParticipationDataToBeFetched"
-    
+
+    number_of_days_to_fetch_participation_data = (
+        "NumberOfDataParticipationDataToBeFetched"
+    )
+
     # Telemetry Service Names
     fetch_stock_info_service = "TickerListService"
     holdings_service = "HoldingsService"
+    user_service = "UsersService"
     access_token_generator_service = "AccessTokenGeneratorService"
     strategy_executor_service = "StrategyExecutorService"
     fetch_store_participants_data_service = "FetchStoreParticipantsDataService"
-    
+    fetch_store_history_data_service = "FetchStoreHistoryDataService"
+
     # telemetry custom dimensions keys
     username = "username"
     contact_number = "contact_number"
@@ -33,19 +37,20 @@ class Constants:
     fyers_pin = "FyersPin"
     secret_key = "SecretKey"
     redirect_uri = "RedirectUri"
-    
+
     STORAGE_CONNECTION_STRING = "StorageConnectionString"
     STOCK_HISTORY_CONTAINER = "stock-history-data"
     DIR_NIFTY_50 = "nifty50-stocks"
-    
+
     ### Cosmos DB Constants ###
     COSMOS_DB_URL = "CosmosDbUrl"
     COSMOS_DB_KEY = "CosmosDbKey"
     HOLDINGS_CONTAINER_NAME = "CosmosHoldingsContainer"
     PARTICIPANTS_DATA_CONTAINER = "CosmosParticipantsDataContainer"
     ALERTS_CONTAINER_NAME = "CosmosAlertsContainer"
+    USERS_CONTAINER_NAME = "UsersContainerName"
     DATABASE_ID = "CosmosDbDatabaseId"
-    
+
     ### HTTP Constants
     HTTP_GET = "GET"
     HTTP_POST = "POST"
@@ -54,10 +59,26 @@ class Constants:
     REQUEST_BODY = "request_body"
     RESPONSE_BODY = "response_body"
     REQUEST_PARAM_USER_ID = "userId"
-    
+
     COSMOS_QUERY = "CosmosQuery"
     COSMOS_PARAMS = "CosmosParams"
 
     CACHE_KEY = "CacheKey"
-    
+
     communication_service_endpoint = "CommunicationServiceEndpoint"
+
+
+    color_green = "#00FF00"
+    color_red = "#FF0000"
+    color_black = "#000000"
+    color_white = "#FFFFFF"
+    color_blue = "#0000FF"
+    color_yellow = "#FFFF00"
+    color_pink = "#FFC0CB"
+    
+    
+    timeframe_30t = "30T"
+    timeframe_hourly = "1H"
+    timeframe_daily = "1D"
+    timeframe_weekly = "1W"
+    timeframe_monthly = "1M"
