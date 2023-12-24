@@ -1,0 +1,28 @@
+{
+    UserId:"",
+    FyersUserName:"",
+    Stoplosses:[
+        {
+            type:"normal",
+            ticker:"reliance",
+            price:200.5
+        },
+        {
+            type:"trendline",
+            ticker:"reliance",
+            trendStart: "2023-01-03",
+            trendEnd: "2023-08-15",
+            
+        },
+        {
+            type:"line",
+            ticker:"hdfc",
+            price:300.5
+        }
+    ]
+}
+
+Type:
+1 -> Normal stop loss -> below a price..
+2 -> Trendline based..
+3 -> Line based..
