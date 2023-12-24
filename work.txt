@@ -1,0 +1,14 @@
+1 -> MarketStart Executor
+    -> SetMarketStopLossInFyers - Normal Stoplosses
+2 -> StopLossExecutor
+    -> Runs every 30 minutes [9:43, 10:13......2:27]
+        Based on the stoploss frequency[30 min or closing], execute stoploss if hit
+3 -> Strategy Executor per strategy
+4 -> TradeExecutor
+    -> Executes strategy based on the given cron timer
+    -> Strategy schema and storing design....
+
+5 -> Holding and Funds
+
+-------------------------
+JS:

@@ -36,8 +36,6 @@ class AlertsRepository:
         telemetry.info(f"Query: {query}", tel_props)
         items = list(self.container.query_items(query, enable_cross_partition_query=True))
         tel_props.update({"ItemsFetched": json.dumps(items) if items else "None"})
-
-        
         telemetry.info(f"Items fetched: {len(items)}", tel_props)
         
         if len(items) == 0:

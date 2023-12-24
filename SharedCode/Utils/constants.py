@@ -48,6 +48,7 @@ class Constants:
     HOLDINGS_CONTAINER_NAME = "CosmosHoldingsContainer"
     PARTICIPANTS_DATA_CONTAINER = "CosmosParticipantsDataContainer"
     ALERTS_CONTAINER_NAME = "CosmosAlertsContainer"
+    STOPLOSS_CONTAINER_NAME = "StoplossContainerName"
     USERS_CONTAINER_NAME = "UsersContainerName"
     DATABASE_ID = "CosmosDbDatabaseId"
 
@@ -82,3 +83,6 @@ class Constants:
     timeframe_daily = "1D"
     timeframe_weekly = "1W"
     timeframe_monthly = "1M"
+    
+    USER_ID = "user_id"
+    STOPLOSS_ID = "stoploss_id" 
