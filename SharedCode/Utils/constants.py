@@ -18,6 +18,7 @@ class Constants:
     # Telemetry Service Names
     fetch_stock_info_service = "TickerListService"
     holdings_service = "HoldingsService"
+    user_service = "UsersService"
     access_token_generator_service = "AccessTokenGeneratorService"
     strategy_executor_service = "StrategyExecutorService"
     fetch_store_participants_data_service = "FetchStoreParticipantsDataService"
@@ -47,6 +48,7 @@ class Constants:
     HOLDINGS_CONTAINER_NAME = "CosmosHoldingsContainer"
     PARTICIPANTS_DATA_CONTAINER = "CosmosParticipantsDataContainer"
     ALERTS_CONTAINER_NAME = "CosmosAlertsContainer"
+    USERS_CONTAINER_NAME = "UsersContainerName"
     DATABASE_ID = "CosmosDbDatabaseId"
 
     ### HTTP Constants

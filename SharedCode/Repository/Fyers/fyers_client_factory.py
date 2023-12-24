@@ -34,6 +34,6 @@ class FyersClientFactory:
         redis_cache_service = RedisCacheService()
         access_token_for_user = redis_cache_service.get_decoded_value(redis_key)
         # Logic to create a new FyersModel instance
-        return fyersModel.FyersModel(client_id=client_id, is_async=False, token=access_token_for_user, log_path="")
+        return fyersModel.FyersModel(client_id=client_id, is_async=False, token=access_token_for_user, log_path="/tmp")
 
 # Rest of the code remains the same
