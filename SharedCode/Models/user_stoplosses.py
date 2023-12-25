@@ -39,6 +39,7 @@ class Stoploss:
         
 @dataclass
 class UserStoplosses:
+    id: str
     user_id: str
     stop_losses: List[Stoploss]
 
@@ -50,6 +51,12 @@ class UserStoplosses:
         stop_losses_dict = [stoploss.to_dict() for stoploss in self.stop_losses]
         return dict(stop_losses_dict)
     
+    def add_stoploss(self, stoploss: Stoploss):
+        existing_stoploss = next((sl for sl in self.stop_losses if sl.id == stoploss.id), None)
+        if existing_stoploss:
+            existing_stoploss.__dict__ = stoploss.__dict__
+        else:
+            self.stop_losses.append(stoploss)
     
 # Example Usage
 # jsonstring = json.loads(myjsonstring)

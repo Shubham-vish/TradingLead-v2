@@ -21,6 +21,8 @@ from SharedCode.Models.user_stoplosses import UserStoplosses, Stoploss
 from SharedCode.Repository.CosmosDB.user_repository import UserRepository
 
 from SharedCode.Models.user import User
+from dacite import from_dict
+from dataclasses import asdict
 
 kv_service = KeyVaultService()
 telemetry = LoggerService()
@@ -36,17 +38,22 @@ tel_props = {
 
 user = user_repository.get_user("1db30ee5-e01a-421f-9f60-bb72ffe31add", telemetry, tel_props)
 
-usermodel = User.from_dict(user)
-user2 = user_repository.get_user(usermodel.user_id, telemetry, tel_props)
+user.fyers_user_name = "ZS42465"
+# user = User(
+#     user_id="1db30ee5-e01a-421f-9f60-bb72ffe31add",
+#     fyers_user_name="XS42465",
+#     kv_secret_name="ShubhamFyersDetails",
+#     id="1db30ee5-e01a-421f-9f60-bb72ffe31add",
+#     name="Shubham Vishwakarma",
+#     email=""
+# )
+user2 = user_repository.get_user(user.user_id, telemetry, tel_props)
 
-usermodel.fyers_user_name = "XS42465"
-usermodel.kv_secret_name = "ShubhamFyersDetails"
-user_repository.store_user(usermodel, telemetry, tel_props)
+user.fyers_user_name = "XS42465"
+user.kv_secret_name = "ShubhamFyersDetails"
+user_repository.store_user(user, telemetry, tel_props)
 
-user2 = User.from_dict(usermodel.to_dict())
-
-usermodel.fyers_user_name = ""
-usermodel.kv_secret_name = ""
-usermodel.user_id = "1db50ee5-e01a-421f-9f60-bb72ffe31add"
-usermodel.id = usermodel.user_id
-user_repository.store_user(usermodel, telemetry, tel_props)
+user.fyers_user_name = ""
+user.kv_secret_name = ""
+user.user_id = "1db50ee5-e01a-421f-9f60-bb72ffe31add"
+user_repository.store_user(user, telemetry, tel_props)

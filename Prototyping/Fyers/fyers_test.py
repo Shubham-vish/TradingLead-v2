@@ -71,11 +71,6 @@ data = {
     'holdingType': 'TypeA'
 }
 
-data = {
-    'id': 1,
-   
-}
-
 Holding(**data)
 holding_instance = from_dict(data_class=Holding, data=data)
 
@@ -84,6 +79,9 @@ type(holdings)
 
 HoldingsResponse.from_dict(holdings)
 holdings = fyers_service.get_holdings(tel_props)
+
+netpositison = fyers_service.get_positions(tel_props)
+pos = from_dict(data_class=NetPositionResponse, data=netpositison)
 holdings.get_quantity("NSE:GAIL-EQ")
 
 type(holdings)

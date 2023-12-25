@@ -34,7 +34,11 @@ from SharedCode.Utils.constants import Constants
 from SharedCode.Utils.utility import FunctionUtils
 from SharedCode.Repository.CosmosDB.stoplosses_repository import StoplossesRepository
 from SharedCode.Models.user_stoplosses import UserStoplosses, Stoploss
-
+from dacite import from_dict
+from dataclasses import asdict
+from SharedCode.Repository.CosmosDB.user_repository import UserRepository
+from SharedCode.Models.user import User
+user_repo = UserRepository()
 telemetry = LoggerService()
 operation_id = "RandomOperationId"
 
@@ -44,27 +48,47 @@ tel_props = {
 }
 
 stoploss_repo = StoplossesRepository()
+user_repo = UserRepository()
 
-stoplosses = [
-    Stoploss("dfasdf", "normal", "AAPL", 150.0),
-    Stoploss("sdsfd", "line", "GOOG", 2000.0),
-    Stoploss("sdfsd", "trend", "MSFT", 300.0, "2022-01-10", "2022-01-20")
-]
+stoploss = {"id": "dfasdf", "type": "normal", "ticker": "AAPL", "price": 150.0, "check_at": "30t", "product_type": "MARGIN"}
 
-stoploss = Stoploss("dfasdf", "normal", "AAPL", 150.0, check_at="30t")
+stoploss_repo.get_all_stoplosses(telemetry, tel_props)
 
-stoploss.price = 200.0
-stoploss_repo.store_user_stoplosses("testuser", stoploss, telemetry, tel_props)
+stoploss_model = from_dict(data_class=Stoploss, data=stoploss)
+stoploss2 = Stoploss("dfasdf", "normal", "AAPL", 150.0, product_type="CNC", check_at="30t")
+stoploss_model.price = 200.0
 
-userStopLosses = stoploss_repo.get_user_stoplosses("testuser", telemetry, tel_props)
+stoplosses = [stoploss_model, stoploss2]
 
-UserStoplosses.from_dict(userStopLosses)
-stoploss_repo.delete_user_stoploss("testuser", "sdfsd", telemetry, tel_props)
+user_stoplosses = UserStoplosses("1db30ee5-e01a-421f-9f60-bb72ffe31add", "1db30ee5-e01a-421f-9f60-bb72ffe31add", stop_losses=stoplosses)
 
-user_stoplosses = UserStoplosses("testuser", "fyers_username", stoplosses)
+user = user_repo.get_user("1db30ee5-e01a-421f-9f60-bb72ffe31add", telemetry, tel_props)
+stoploss = from_dict(data_class=Stoploss, data=stoploss)
+stoploss_repo.store_user_stoplosses(user.id, stoploss, telemetry, tel_props)
+
+next((sl for sl in stoplosses if sl.id == stoploss.id), None)
+
+stopnew = from_dict(data_class=Stoploss, data= asdict( stoploss))
+stopnew.id = "sdfsddfdsdfsdf"
+            
+            
+userStopLosses = stoploss_repo.get_user_stoplosses(user.id, telemetry, tel_props)
+
+stoploss_repo.delete_user_stoploss(user.id, "sdfsd", telemetry, tel_props)
+
+user_stoplosses = UserStoplosses(user.id,user.id, stoplosses)
 user_stoplosses.to_dict()
 
-stoploss_repo.store_user_stoplosses(user_stoplosses, telemetry, tel_props)
+asdict(user_stoplosses)
+stoploss_model.check_at = "closing"
+stoploss_model.id = "asdasdfdfsd"
+stoploss_repo.store_user_stoplosses("2db30ee5-e01a-421f-9f60-bb72ffe31add", stoploss_model, telemetry, tel_props)
+
+stoploss_repo.delete_user_stoploss("2db30ee5-e01a-421f-9f60-bb72ffe31add", stoploss_model.id, telemetry, tel_props)
+stoploss2.id = "asdfasdf"
+stoploss_repo.store_user_stoplosses(user.user_id, stoploss2, telemetry, tel_props)
+stoploss_repo.delete_user_stoploss(user.user_id, stoploss_model.id, telemetry, tel_props)
+stoploss_repo.delete_user_stoploss(user.user_id, stoploss2.id, telemetry, tel_props)
 s = stoploss_repo.get_stoplosses_by_user("testuserr")
 response = stoploss_repo.get_stoplosses_by_user("testuser")
 

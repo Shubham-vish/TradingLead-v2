@@ -5,6 +5,8 @@ from SharedCode.Models.user_stoplosses import UserStoplosses, Stoploss, Constant
 from SharedCode.Repository.KeyVault.keyvault_service import KeyVaultService
 from SharedCode.Utils.constants import Constants
 from typing import List, Dict, Any
+from dacite import from_dict
+from dataclasses import asdict
 
 class StoplossesRepository:
     def __init__(self):
@@ -15,48 +17,70 @@ class StoplossesRepository:
         self.container = cosmos_db_service.get_container(stop_loss_container_name)
 
     def get_all_stoplosses(self, telemetry:LoggerService, tel_props) -> List[UserStoplosses]:
+        tel_props = tel_props.copy()
+        
         query = "SELECT * FROM c"
-        result = self.container.query_items(query, enable_cross_partition_query=True)
-        tel_props.update({Constants.COSMOS_QUERY: query, "action": "get_all_stoplosses"})
-        result_list = list(result)
-        if len(result_list) == 0:
-            telemetry.info("No StopLosses found.", tel_props)
-            return None
-        else:
-            telemetry.info("StopLosses found.", tel_props)
-            user_stoplosses_list = []
-            for item in result_list:
-                try:
-                    user_stoplosses = UserStoplosses.from_dict(item)
-                    user_stoplosses_list.append(user_stoplosses)
-                except Exception as e:
-                    telemetry.error(f"Error occurred while processing user stoplosses doc: {item}, error: {str(e)}", tel_props)
-            return user_stoplosses_list
+        
+        try:
+            result = self.container.query_items(query, enable_cross_partition_query=True)
+            tel_props.update({Constants.COSMOS_QUERY: query, "action": "get_all_stoplosses"})
+            result_list = list(result)
+            if len(result_list) == 0:
+                telemetry.info("No StopLosses found.", tel_props)
+                return []
+            else:
+                telemetry.info("StopLosses found.", tel_props)
+                return [from_dict(data_class=UserStoplosses, data=user_stoploss) for user_stoploss in result_list]
+        except Exception as e:
+            telemetry.exception(f"Error occurred while fetching all StopLosses : {str(e)}", tel_props)
+            raise e
     
-    def create_user_stoplosses(self, stoploss):
-        self.container.create_item(stoploss)
+    def create_user_stoplosses(self, user_stoplosses:UserStoplosses, telemetry:LoggerService, tel_props):
+        tel_props = tel_props.copy()
+        tel_props.update({Constants.USER_ID: user_stoplosses.user_id, "action": "create_user_stoplosses"})
+        
+        try:
+            telemetry.info(f"Creating user_stoplosses: {user_stoplosses}", tel_props)
+            self.container.create_item(asdict(user_stoplosses))
+            telemetry.info(f"User_stoplosses created: {user_stoplosses}", tel_props)
+        except Exception as e:
+            telemetry.exception(f"Error occurred while creating user_stoplosses: {str(e)}", tel_props)
+            raise e
 
-    def get_user_stoplosses(self, user_id:str, telemetry:LoggerService, tel_props):
+    def get_user_stoplosses(self, user_id:str, telemetry:LoggerService, tel_props)->UserStoplosses:
+        tel_props = tel_props.copy()
         query = f"SELECT * FROM c WHERE c.user_id = '{user_id}'"
-        result = self.container.query_items(query, enable_cross_partition_query=True)
         tel_props.update({Constants.COSMOS_QUERY: query, "action": "get_user_stoplosses"})
-        result_list = list(result)
-        if len(result_list) == 0:
-            telemetry.info(f"StopLosses for the given user {user_id} not found.", tel_props)
-            return None
-        else:
-            telemetry.info(f"StopLosses for the given user {user_id} found.", tel_props)
-            return result_list[0]
+        try:
+            result = self.container.query_items(query, partition_key=user_id)
+            result_list = list(result)
+            if len(result_list) == 0:
+                telemetry.info(f"StopLosses for the given user {user_id} not found.", tel_props)
+                return None
+            else:
+                telemetry.info(f"StopLosses for the given user {user_id} found.", tel_props)
+                return from_dict(data_class=UserStoplosses, data=result_list[0])
+        except Exception as e:
+            telemetry.exception(f"Error occurred while fetching user_stoplosses for user: {user_id} error : {str(e)}", tel_props)
+            raise e
 
-    def update_user_stoplosses(self, user_stoplosses):
-        self.container.upsert_item(user_stoplosses)
+    def update_user_stoplosses(self, user_stoplosses:UserStoplosses, telemetry:LoggerService, tel_props):
+        tel_props = tel_props.copy()
+        tel_props.update({Constants.USER_ID: user_stoplosses.user_id, "action": "update_user_stoplosses"})
+        
+        try:
+            telemetry.info(f"Updating user_stoplosses: {user_stoplosses}", tel_props)
+            self.container.upsert_item(asdict(user_stoplosses))
+            telemetry.info(f"User_stoplosses updated: {user_stoplosses}", tel_props)
+        except Exception as e:
+            telemetry.exception(f"Error occurred while updating user_stoplosses for user {user_stoplosses.user_id} error: {str(e)}", tel_props)
+            raise e
 
     def delete_user_stoploss(self, user_id:str, stoploss_id:str, telemetry:LoggerService, tel_props):
-        user_stoplosses_dict = self.get_user_stoplosses(user_id, telemetry, tel_props)
+        user_stoplosses = self.get_user_stoplosses(user_id, telemetry, tel_props)
         
         tel_props.update({Constants.USER_ID: user_id, Constants.STOPLOSS_ID: stoploss_id, "action": "delete_user_stoploss"})
-        if user_stoplosses_dict:
-            user_stoplosses = UserStoplosses.from_dict(user_stoplosses_dict)
+        if user_stoplosses:
             stop_losses = user_stoplosses.stop_losses
             new_stop_losses = [stoploss for stoploss in stop_losses if stoploss.id != stoploss_id]
 
@@ -66,7 +90,11 @@ class StoplossesRepository:
             else:
                 telemetry.info(f"Stoploss for the given {stoploss_id} found. Updating the entry.", tel_props)
                 user_stoplosses.stop_losses = new_stop_losses
-                self.update_user_stoplosses(user_stoplosses.to_dict())
+                if len(new_stop_losses) == 0:
+                    telemetry.info(f"Stoplosses for the given user {user_id} are empty. Deleting the entry.", tel_props)
+                    self.container.delete_item(user_id, partition_key= user_id)
+                else:
+                    self.update_user_stoplosses(user_stoplosses, telemetry, tel_props)
                 return True
         else:
             telemetry.info(f"StopLoss for the given user {user_id} not found.", tel_props)
@@ -74,29 +102,15 @@ class StoplossesRepository:
             
 
     def store_user_stoplosses(self, user_id:str, stop_loss:Stoploss, telemetry: LoggerService, tel_props):
-        user_stoplosses_dict = self.get_user_stoplosses(user_id, telemetry, tel_props)
-        if user_stoplosses_dict:
-            # Existing stoplosses found for the user
+        tel_props = tel_props.copy()
+        tel_props.update({Constants.USER_ID: user_id, "action": "store_user_stoplosses"})
+        user_stoplosses = self.get_user_stoplosses(user_id, telemetry, tel_props)
+        if user_stoplosses:
             telemetry.info(f"User {user_id} already has stoplosses. Updating stoplosses.", tel_props)
-            
-            stop_losses = user_stoplosses_dict[UserStoplossesConstants.stoplosses]
-            stop_loss_id = stop_loss.id
-            stop_loss_exists = False
-
-            for i, sl in enumerate(stop_losses):
-                if sl["id"] == stop_loss_id:
-                    stop_losses[i] = stop_loss.to_dict()
-                    stop_loss_exists = True
-                    break
-
-            if not stop_loss_exists:
-                stop_losses.append(stop_loss.to_dict())
-
-            self.update_user_stoplosses(user_stoplosses_dict)            
+            user_stoplosses.add_stoploss(stop_loss)
+            self.update_user_stoplosses(user_stoplosses, telemetry, tel_props)            
         else:
-        # No existing stoplosses found for the user
             telemetry.info(f"User {user_id} does not have any stoplosses. Creating stoplosses.", tel_props)
             user_stoplosses = UserStoplosses(user_id, user_id, [stop_loss])
-            doc_db_object = user_stoplosses.to_dict()
-            self.create_user_stoplosses(doc_db_object)
+            self.create_user_stoplosses(user_stoplosses, telemetry, tel_props)
 
