@@ -398,8 +398,11 @@ class FyersService:
             except Exception as e:
                 telemetry.exception(f"Error in getting qty: {stoploss}", tel_props)
                 exception_occurred = True
-            
-        return exception_occurred
+                
+        if exception_occurred:
+            msg = f"Error in setting stoplosses"
+            telemetry.exception(msg, tel_props)
+            raise Exception(msg)
                 
             
     # Apis to get History data
