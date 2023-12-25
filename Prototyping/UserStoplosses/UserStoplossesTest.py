@@ -33,7 +33,7 @@ from SharedCode.Repository.CosmosDB.CosmosUtils.cosmos_db_service import CosmosD
 from SharedCode.Utils.constants import Constants
 from SharedCode.Utils.utility import FunctionUtils
 from SharedCode.Repository.CosmosDB.stoplosses_repository import StoplossesRepository
-from SharedCode.Models.UserStoplosses import UserStoplosses, Stoploss
+from SharedCode.Models.user_stoplosses import UserStoplosses, Stoploss
 
 telemetry = LoggerService()
 operation_id = "RandomOperationId"

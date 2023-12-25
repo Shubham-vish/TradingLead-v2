@@ -20,6 +20,16 @@ from SharedCode.Repository.Fyers.fyers_client_factory import FyersClientFactory
 from SharedCode.Repository.Fyers.fyers_service import FyersService
 from SharedCode.Repository.Fyers.fyers_service import FyersService
 from SharedCode.Repository.Fyers.fyers_client_factory import FyersClientFactory
+from SharedCode.Models.net_positions_response import (
+    NetPositionResponse,
+    NetPosition,
+)
+
+from SharedCode.Models.fyers_constants import (
+    ProductType,
+    OrderSide,
+    OrderType,
+)
 
 kv_service = KeyVaultService()
 
@@ -30,36 +40,29 @@ tel_props = {
     Constants.operation_id: operation_id,
 }
 
-fyers_details = kv_service.get_fyers_user(0)
-
-fyers_client = FyersClientFactory.get_fyers_client(fyers_details)
+fyers_details = kv_service.get_fyers_user(1)
 
 fyers_service = FyersService(fyers_details)
 
 ticker_name = "NSE:ICICIBANK-EQ"
-pos_json = fyers_client.positions()
 
-from SharedCode.Repository.Fyers.Models.net_positions_response import (
-    NetPositionResponse,
-    NetPosition,
-)
+fyers_client = FyersClientFactory.get_fyers_client(fyers_details)
 
-from SharedCode.Repository.Fyers.Models.fyers_constants import (
-    ProductType,
-    OrderSide,
-    OrderType,
-)
+holdings = fyers_client.holdings()
 
+holdings = fyers_service.get_holdings(tel_props)
+
+fyers_client.orderbook()
+holdings.get_quantity("NSE:GAIL-EQ")
+from SharedCode.Models.holdings_response import HoldingsResponse, Holding
+
+hold_model = HoldingsResponse.from_dict(holdings)
+hold_model.get_quantity("NSE:GAIL-EQ")
 positions = fyers_service.get_positions(tel_props)
-
+positions.get_quantity("NSE:GAIL-EQ")
 positions.net_positions
 positions.get_positions_of_type(ProductType.margin)
 
-# netposition_response = NetPositionResponse.from_dict(pos_json)
-
-# for position in netposition_response.net_positions:
-#     print(position.product_type)
-# //Following code is able to execute Nifty fuy of 1 lot
 ticker_name = "NSE:NIFTY24JANFUT"
 qty = 50
 fyers_service.place_buy_market(ticker_name, qty, ProductType.margin, tel_props)

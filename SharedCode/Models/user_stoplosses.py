@@ -8,6 +8,7 @@ class Constants:
     type = "type"
     ticker = "ticker"
     price = "price"
+    product_type = "product_type" 
     trend_start = "trend_start"
     trend_end = "trend_end"
     user_id = "UserId"
@@ -31,6 +32,7 @@ class Stoploss:
     type: str
     ticker: str
     price: float
+    product_type: str
     trend_start: Optional[str] = None
     trend_end: Optional[str] = None
     check_at: Optional[str] = None
@@ -47,12 +49,13 @@ class Stoploss:
         
         _ticker = str(obj.get(Constants.ticker))
         _price = float(obj.get(Constants.price))
+        _product_type = str(obj.get(Constants.product_type))
         
         _trend_start = str(obj.get(Constants.trend_start, None))
         _trend_end = str(obj.get(Constants.trend_end, None))
         _check_at = str(obj.get(Constants.check_at, None))
         
-        return Stoploss(_id, _type, _ticker, _price, _trend_start, _trend_end, _check_at)
+        return Stoploss(_id, _type, _ticker, _price, _product_type, _trend_start, _trend_end, _check_at)
     
     def to_dict(self) -> dict:
         return asdict(self)

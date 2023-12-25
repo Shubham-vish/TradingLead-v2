@@ -19,11 +19,6 @@ class NetPosition:
     qty: int
     product_type: str
     realized_profit: float
-    cross_currency: str
-    rbi_ref_rate: int
-    fy_token: str
-    exchange: int
-    segment: int
     day_buy_qty: int
     day_sell_qty: int
     cf_buy_qty: int
@@ -51,11 +46,6 @@ class NetPosition:
             qty=int(obj.get("qty", 0)),
             product_type=str(obj.get("productType")),
             realized_profit=float(obj.get("realized_profit", 0)),
-            cross_currency=str(obj.get("crossCurrency", "")),
-            rbi_ref_rate=int(obj.get("rbiRefRate", 0)),
-            fy_token=str(obj.get("fyToken")),
-            exchange=int(obj.get("exchange", 0)),
-            segment=int(obj.get("segment", 0)),
             day_buy_qty=int(obj.get("dayBuyQty", 0)),
             day_sell_qty=int(obj.get("daySellQty", 0)),
             cf_buy_qty=int(obj.get("cfBuyQty", 0)),
@@ -124,9 +114,15 @@ class NetPositionResponse:
             for position in self.net_positions
             if position.product_type == product_type
         ]
+        
+    def get_quantity(self, ticker: str) -> int:
+        for position in self.net_positions:
+            if position.symbol == ticker:
+                return position.qty
+        return 0
 
-
-# Example Usage
-# json_string = '{"code":200, ...}'  # Replace with actual JSON string
-# json_data = json.loads(json_string)
-# root = Root.from_dict(json_data)
+    def get_total_exposure(self) -> float:
+        total_exposure = 0
+        for position in self.net_positions:
+            total_exposure += position.net_qty * position.ltp
+        return total_exposure

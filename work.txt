@@ -1,5 +1,7 @@
 1 -> MarketStart Executor
     -> SetMarketStopLossInFyers - Normal Stoplosses
+    -> for stoplosses check in orderbook if already similar stoploss is present
+    -> While running trade based on strategy add stoploss in CosmosDB as well as in fyers
 2 -> StopLossExecutor
     -> Runs every 30 minutes [9:43, 10:13......2:27]
         Based on the stoploss frequency[30 min or closing], execute stoploss if hit
@@ -8,7 +10,7 @@
     -> Executes strategy based on the given cron timer
     -> Strategy schema and storing design....
 
-5 -> Holding and Funds
+5 -> Funds
 
 -------------------------
 JS:
