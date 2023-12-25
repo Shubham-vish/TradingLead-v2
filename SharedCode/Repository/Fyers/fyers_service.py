@@ -270,7 +270,7 @@ class FyersService:
             try:
                 res = self.fyers_client.holdings()
                 telemetry.info(f"Returning holdings response: {res}", tel_props)
-                response = HoldingsResponse.from_dict(res)
+                response = HoldingsResponse(**res)
 
                 if response.s == Response.OK:
                     return response

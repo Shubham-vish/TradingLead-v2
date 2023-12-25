@@ -46,16 +46,59 @@ fyers_service = FyersService(fyers_details)
 
 ticker_name = "NSE:ICICIBANK-EQ"
 
+
+from SharedCode.Models.dataclass_from_dict import dataclass_from_dict
+from dataclasses import asdict
+from SharedCode.Models.holdings_response import HoldingsResponse, Holding
+
+
 fyers_client = FyersClientFactory.get_fyers_client(fyers_details)
 
+from SharedCode.Models.holding import Holding
+
 holdings = fyers_client.holdings()
+from dacite import from_dict
 
+data = {
+    'costPrice': 100.0,
+    'id': 1,
+    'symbol': 'XYZ',
+    'quantity': 10,
+    'segment': 2,
+    'pl': 50.0,
+    'ltp': 150.0,
+    'marketVal': 1000.0,
+    'holdingType': 'TypeA'
+}
+
+data = {
+    'id': 1,
+   
+}
+
+Holding(**data)
+holding_instance = from_dict(data_class=Holding, data=data)
+
+hres = from_dict(data_class=HoldingsResponse, data=holdings)
+type(holdings)
+
+HoldingsResponse.from_dict(holdings)
 holdings = fyers_service.get_holdings(tel_props)
+holdings.get_quantity("NSE:GAIL-EQ")
 
+type(holdings)
+
+
+ss = dataclass_from_dict(HoldingsResponse, asdict(holdings))
+
+type(holdings.holdings[0])
+for holding in holdings.holdings:
+    print(type(holding))
+    
+    
 fyers_client.orderbook()
 holdings.get_quantity("NSE:GAIL-EQ")
 from SharedCode.Models.holdings_response import HoldingsResponse, Holding
-
 hold_model = HoldingsResponse.from_dict(holdings)
 hold_model.get_quantity("NSE:GAIL-EQ")
 positions = fyers_service.get_positions(tel_props)

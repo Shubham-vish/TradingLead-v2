@@ -5,6 +5,7 @@ from SharedCode.Repository.Logger.logger_service import LoggerService
 from SharedCode.Models.user import User
 from SharedCode.Repository.KeyVault.keyvault_service import KeyVaultService
 from SharedCode.Utils.constants import Constants
+from dataclasses import asdict
 
 class UserRepository:
     def __init__(self):
@@ -15,11 +16,11 @@ class UserRepository:
         self.container = self.cosmos_db_service.get_container(self.users_container_name)
 
     def create_user(self, user: User):
-        doc = user.to_dict()
+        doc = asdict(user)
         self.container.create_item(doc)
 
     def get_user(self, user_id, telemetry: LoggerService, tel_props):
-        query = "SELECT * FROM c WHERE c.UserId = @user_id"
+        query = "SELECT * FROM c WHERE c.user_id = @user_id"
         parameters = [{"name": "@user_id", "value": user_id}]
         
         try:
@@ -62,22 +63,6 @@ class UserRepository:
         else:
             telemetry.info(f"User {user.user_id} does not exist. Creating user.", tel_props)
             self.create_user(user)
-
-    def store_user(self, user:User, telemetry:LoggerService, tel_props):
-        telemetry.info(f"Storing user: {user}", tel_props)
-        existing_user = self.get_user(user.user_id, telemetry, tel_props)
-        if existing_user:
-            telemetry.info(f"User {user.user_id} already exists. Updating user.", tel_props)
-            
-            existing_user["name"] = user.name
-            existing_user["email"] = user.email
-            existing_user["kv_secret_name"] = user.kv_secret_name
-            existing_user["fyers_user_name"] = user.fyers_user_name
-            self.update_user(existing_user)
-        else:
-            telemetry.info(f"User {user.user_id} does not exist. Creating user.", tel_props)
-            self.create_user(user)
-        
     
 
 

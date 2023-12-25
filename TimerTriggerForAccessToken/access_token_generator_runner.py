@@ -56,7 +56,7 @@ def access_token_generator_runner(tel_props):
                 user_info = result["user"]
                 token = result["fetched_token"]
                 # Log the success or result if necessary
-                tel_props.update({"UserId": json.dumps(user_info),
+                tel_props.update({"user_id": json.dumps(user_info),
                     "Token": token
                 })
                 telemetry.info(f"Task completed successfully: {result}", tel_props)

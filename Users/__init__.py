@@ -5,15 +5,9 @@ from SharedCode.Repository.Logger.logger_service import LoggerService
 from SharedCode.Utils.utility import FunctionUtils
 from SharedCode.Repository.CosmosDB.CosmosUtils.cosmos_db_service import CosmosDbService
 from SharedCode.Repository.KeyVault.keyvault_service import KeyVaultService
-
+from SharedCode.Models.user import User
 telemetry = LoggerService()
 users_repo = UserRepository()
-
-class User:
-    def __init__(self, user_id, email, name):
-        self.user_id = user_id
-        self.email = email
-        self.name = name
 
 def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
     
@@ -39,7 +33,7 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         })
         
         if user_id:
-            user = User(user_id, email, name)
+            user = User(id=user_id, user_id= user_id,email= email,name= name)
             users_repo.store_user(user, telemetry, tel_props)
             telemetry.info('User stored successfully.', tel_props)
             return func.HttpResponse("User stored successfully.", status_code=200)

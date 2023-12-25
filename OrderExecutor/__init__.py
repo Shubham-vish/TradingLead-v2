@@ -1,5 +1,5 @@
 import azure.functions as func
-from SharedCode.Models.Stoploss.stoploss_message import StoplossMessage
+from SharedCode.Models.Stoploss.order_message import StoplossMessage
 from SharedCode.Repository.Fyers.fyers_service import FyersService
 from SharedCode.Repository.KeyVault.keyvault_service import KeyVaultService
 from SharedCode.Repository.Logger.logger_service import LoggerService

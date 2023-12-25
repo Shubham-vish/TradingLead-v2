@@ -37,7 +37,7 @@ class StoplossesRepository:
         self.container.create_item(stoploss)
 
     def get_user_stoplosses(self, user_id:str, telemetry:LoggerService, tel_props):
-        query = f"SELECT * FROM c WHERE c.UserId = '{user_id}'"
+        query = f"SELECT * FROM c WHERE c.user_id = '{user_id}'"
         result = self.container.query_items(query, enable_cross_partition_query=True)
         tel_props.update({Constants.COSMOS_QUERY: query, "action": "get_user_stoplosses"})
         result_list = list(result)
