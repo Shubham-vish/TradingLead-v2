@@ -90,3 +90,7 @@ class Constants:
     
     kv_secret_name = "kv_secret_name"
     fyers_user_name = "fyers_user_name"
+    
+    
+    service_bus_connection_string = "ServiceBusConnectionString"
+    ORDER_TOPIC_NAME = "OrderTopicName"

@@ -17,7 +17,7 @@ from SharedCode.Repository.Fyers.fyers_service import FyersService
 import pandas as pd
 from SharedCode.Repository.CosmosDB.stoplosses_repository import StoplossesRepository
 from SharedCode.Utils.constants import Constants
-from SharedCode.Models.user_stoplosses import UserStoplosses, Stoploss
+from SharedCode.Models.Order.user_stoplosses import UserStoplosses, Stoploss
 from SharedCode.Repository.CosmosDB.user_repository import UserRepository
 
 from SharedCode.Models.user import User

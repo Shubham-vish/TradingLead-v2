@@ -19,4 +19,5 @@ opencensus-ext-azure
 redis
 azure-storage-blob
 azure-communication-email
+azure-servicebus
 # TA-Lib

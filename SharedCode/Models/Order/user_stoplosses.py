@@ -3,7 +3,7 @@ from typing import Any
 from dataclasses import dataclass
 import json
 from dataclasses import asdict
-
+from dacite import from_dict
 class Constants:
     type = "type"
     ticker = "ticker"

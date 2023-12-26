@@ -17,7 +17,7 @@ from SharedCode.Models.net_positions_response import (
 
 from SharedCode.Models.holdings_response import HoldingsResponse, Holding
 from SharedCode.Models.orderbook_response import OrderBookResponse, OrderBook
-from SharedCode.Models.user_stoplosses import Stoploss
+from SharedCode.Models.Order.user_stoplosses import Stoploss
 import pandas as pd
 from datetime import timedelta
 from SharedCode.Utils.constants import Constants

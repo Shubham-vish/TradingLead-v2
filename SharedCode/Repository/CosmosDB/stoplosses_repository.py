@@ -1,7 +1,7 @@
 from azure.cosmos import PartitionKey
 from SharedCode.Repository.CosmosDB.CosmosUtils.cosmos_db_service import CosmosDbService
 from SharedCode.Repository.Logger.logger_service import LoggerService
-from SharedCode.Models.user_stoplosses import UserStoplosses, Stoploss, Constants as UserStoplossesConstants
+from SharedCode.Models.Order.user_stoplosses import UserStoplosses, Stoploss, Constants as UserStoplossesConstants
 from SharedCode.Repository.KeyVault.keyvault_service import KeyVaultService
 from SharedCode.Utils.constants import Constants
 from typing import List, Dict, Any
