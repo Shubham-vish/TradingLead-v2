@@ -6,8 +6,8 @@
       "name": "message",
       "type": "serviceBusTrigger",
       "direction": "in",
-      "topicName": "stoploss-executor",
-      "subscriptionName": "runner",
+      "topicName": "orders",
+      "subscriptionName": "executor",
       "connection": "sbtradinglead_SERVICEBUS"
     }
   ]

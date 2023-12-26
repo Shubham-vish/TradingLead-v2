@@ -58,12 +58,12 @@ order_message.id = "sdfsdf"
 results = market_start_executer_runner(tel_props)
 
 user2 = user_repository.get_user("2db30ee5-e01a-421f-9f60-bb72ffe31add", telemetry, tel_props)
-
-
-
-
-
-
+from SharedCode.Repository.ServiceBus.servicebus_factory import ServiceBusFactory
+import json
+sb_client = ServiceBusFactory.get_client()
+sb_receiver = sb_client.get_subscription_receiver("orders", "executor")
+msg = sb_receiver.peek_messages()
+# Use message_body as needed
 
 # def set_stoploss(user_stoplosses:UserStoplosses, tel_props):
 #     # user_stoplosses = users_stoplosses[0]

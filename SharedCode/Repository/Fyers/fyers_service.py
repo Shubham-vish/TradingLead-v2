@@ -21,6 +21,7 @@ from SharedCode.Models.Order.user_stoplosses import Stoploss
 import pandas as pd
 from datetime import timedelta
 from SharedCode.Utils.constants import Constants
+import json
 telemetry = LoggerService()
 
 
@@ -30,6 +31,11 @@ class FyersService:
         self.fyers_username = client_details[Constants.fyers_username]
         self.client_id = client_details[Constants.client_id]
         
+    @staticmethod
+    def from_kv_secret_name(kv_secret_name, kv_service):
+        fyers_details_json = kv_service.get_secret(kv_secret_name)
+        fyers_details = json.loads(fyers_details_json)
+        return FyersService(fyers_details)
     
     def place_buy_market(
         self, ticker_name: str, qty: int, product_type: str, tel_props

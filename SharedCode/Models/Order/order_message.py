@@ -8,8 +8,8 @@ from typing import Union
 @dataclass
 class OrderConstants:
     order_type: str = "order_type"
-    order_type_market: str = "Market"
-    order_type_market: str = "CNC"
+    order_type_margin: str = "Margin"
+    order_type_cnc: str = "CNC"
     order_type_stoploss: str = "Stoploss"
 
 @dataclass
