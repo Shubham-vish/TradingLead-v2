@@ -1,19 +1,21 @@
-class ProductType:
-    cnc = "CNC"
-    margin = "MARGIN"
-    intraday = "INTRADAY"
-    co = "CO"
-    bo = "BO"
+from enum import Enum
+from enum import Enum
+
+class ProductType(Enum):
+    CNC = "CNC"
+    MARGIN = "MARGIN"
+    INTRADAY = "INTRADAY"
 
 
-class OrderType:
+
+class OrderType(Enum):
     limit = 1
     market = 2
     stoploss_market = 3
     stoploss_limit = 4
 
 
-class OrderSide:
+class OrderSide(Enum):
     buy = 1
     sell = -1
 

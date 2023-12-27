@@ -49,7 +49,7 @@ userStoplosses = users_stoplosses[0]
 user = user_repository.get_user(userStoplosses.user_id, telemetry, tel_props)
 
 
-order_message =  OrderMessage.from_user_stoplosses(users_stoplosses[0], user)
+order_message =  OrderMessage.from_stoplosses(users_stoplosses[0].stop_losses, user)
 order_message.id = "sdfsdf"
 
 # service_bus_repo.send_to_topic("sdfs", "orders")

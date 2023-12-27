@@ -24,6 +24,7 @@ from SharedCode.Utils.constants import Constants
 import json
 from dacite import from_dict
 from dataclasses import asdict
+from SharedCode.Models.Order.order import Order
 telemetry = LoggerService()
 
 
@@ -38,6 +39,51 @@ class FyersService:
         fyers_details_json = kv_service.get_secret(kv_secret_name)
         fyers_details = json.loads(fyers_details_json)
         return FyersService(fyers_details)
+    
+    
+    def place_order(self, ticker_name: str, qty: int, product_type: str, side: OrderSide, tel_props):
+        tel_props = tel_props.copy()
+        side_str = "buy" if side == OrderSide.buy else "sell"    
+        
+        tel_props.update(
+            {
+                "side": side_str,
+                "action": "place_order",
+            }
+        )
+        
+        for attempt in range(3):
+            try:
+                data = {
+                    "symbol": ticker_name,
+                    "qty": qty,
+                    "type": OrderType.market,
+                    "side": side,
+                    "productType": product_type,
+                    "stoploss": 0,
+                    "stopprice": 0,
+                    "validity": "DAY",
+                    "disclosedQty": 0,
+                    "offlineOrder": False,
+                }
+                response = self.fyers_client.place_order(data)
+                telemetry.info(
+                    f"Placing {side_str} market response for {data}: {response}", tel_props
+                )
+                
+                if response["s"] == Response.OK:
+                    telemetry.info(f"Placing {side_str} market response OK for {data}", tel_props)
+                    return response
+                else:
+                    msg = f"Invalid Response while placing {side_str} market:{data} response:{response}"
+                    telemetry.exception(msg, tel_props)
+                    raise Exception(msg)
+            except Exception as e:
+                telemetry.exception(f"Error in placing {side_str} market, attempt: {attempt}, error: {e}", tel_props)
+                continue
+        msg = f"Max retries in placing {side_str} market, error"
+        telemetry.exception(msg, tel_props)
+        raise Exception(msg)
     
     def place_buy_market(
         self, ticker_name: str, qty: int, product_type: str, tel_props
@@ -72,40 +118,27 @@ class FyersService:
             }
         )
         
+        return self.place_order(ticker_name, qty, product_type, OrderSide.buy, tel_props)
+    
+    def place_sell_market(
+        self, ticker_name: str, qty: int, product_type: str, tel_props
+    ):
+        tel_props = tel_props.copy()
+        tel_props.update(
+            {
+                "ticker_name": ticker_name,
+                "qty": qty,
+                "product_type": product_type,
+                "order_type": "market",
+                "side": "sell",
+                "action": "place_sell_market_order",
+                Constants.fyers_user_name: self.fyers_username,
+                Constants.client_id: self.client_id,
+            }
+        )
         
-        for attempt in range(3):
-            try:
-                data = {
-                    "symbol": ticker_name,
-                    "qty": qty,
-                    "type": OrderType.market,
-                    "side": OrderSide.buy,
-                    "productType": product_type,
-                    "stoploss": 0,
-                    "stopprice": 0,
-                    "validity": "DAY",
-                    "disclosedQty": 0,
-                    "offlineOrder": False,
-                }
-                response = self.fyers_client.place_order(data)
-                telemetry.info(
-                    f"Placing buy market response for {data}: {response}", tel_props
-                )
-                
-                if response["s"] == Response.OK:
-                    telemetry.info(f"Placing buy market response OK for {data}", tel_props)
-                    return response
-                else:
-                    msg = f"Invalid Response while placing buy market:{data} response:{response}"
-                    telemetry.exception(msg, tel_props)
-                    raise Exception(msg)
-            except Exception as e:
-                telemetry.exception(f"Error in placing buy market, attempt: {attempt}, error: {e}", tel_props)
-                continue
-        msg = f"Max retries in placing buy market, error"
-        telemetry.exception(msg, tel_props)
-        raise Exception(msg)
-
+        return self.place_order(ticker_name, qty, product_type, OrderSide.sell, tel_props)
+    
     def place_stoploss_for_buy_market_order(
         self,
         ticker_name: str,
@@ -411,15 +444,72 @@ class FyersService:
                 telemetry.exception(f"Error in getting qty: {stoploss}, {e}", tel_props)
                 exception_occurred = True
                 
-        if exception_occurred:
-            msg = f"Error in setting stoplosses"
-            telemetry.exception(msg, tel_props)
-            raise Exception(msg)
-                
+    def place_orders(self, orders: List[Order], tel_props):
+        
+        tel_props = tel_props.copy()
+        tel_props.update({"action": "place_orders", "orders": [asdict(order) for order in orders], Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})
+        telemetry.info(f"Processing orders: {orders}", tel_props)
+        
+        for order in orders:
+            telemetry.info(f"Processing order: {order}", tel_props)    
+            if(order.order_type == OrderType.market):
+                if order.side == OrderSide.buy:
+                    telemetry.info(f"Placing buy market order: {order}", tel_props)
+                    self.place_buy_market(order.symbol, order.quantity, order.product_type, tel_props)
+                elif order.side == OrderSide.sell:
+                    telemetry.info(f"Placing sell market order: {order}", tel_props)
+                    self.place_sell_market(order.symbol, order.quantity, order.product_type, tel_props)
+                else:
+                    telemetry.exception(f"Order side not supported: {order}", tel_props)
+                    raise Exception(f"Order side not supported: {order}")
+            else:
+                telemetry.exception(f"Order type not supported: {order}", tel_props)
+                raise Exception(f"Order type not supported: {order}")
             
+            telemetry.info(f"Qty for {order.symbol}: {order.quantity}", tel_props)
+            
+            
+    def is_stoploss_triggered(self, stoploss: Stoploss, hldng_res: HoldingsResponse,pos_res:NetPositionResponse , tel_props):
+        
+        tel_props = tel_props.copy()
+        tel_props.update({"action": "is_stoploss_triggered", "stoploss": asdict(stoploss), Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})
+        
+        telemetry.info(f"Checking stoploss trigger for {stoploss}", tel_props)
+        
+        qty_positions = pos_res.get_quantity(stoploss.ticker)
+        qty_holdings = hldng_res.get_quantity(stoploss.ticker)
+        
+        qty = qty_positions + qty_holdings
+        telemetry.info(f"Qty for {stoploss.ticker}: {qty}", tel_props)
+        
+        if qty == 0:
+            telemetry.info(f"No qty for {stoploss.ticker}: {qty}", tel_props)
+            return True
+        
+        if stoploss.is_triggered(qty):
+            telemetry.info(f"Stoploss triggered for {stoploss}", tel_props)
+            return True
+        
+        telemetry.info(f"Stoploss not triggered for {stoploss}", tel_props)
+        return False
+           
     # Apis to get History data
     # No retries implemented as of now
     # 
+    
+    def get_quote(self, quote_req, tel_props):
+        tel_props = tel_props.copy()
+        tel_props.update({"action": "get_quote", "quote_req": quote_req, Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})
+        
+        telemetry.info(f"Fetching quote for {quote_req}", tel_props)
+        try:
+            response = self.fyers_client.quote(quote_req)
+            telemetry.info(f"Fetched quote response for {quote_req}: {response}", tel_props)
+            return response
+        except Exception as e:
+            telemetry.exception(f"Error in fetching quote for {quote_req}: {e}", tel_props)
+            raise e    
+
     def history(self, ticker, range_from, range_to, resolution, tel_props):
         tel_props = tel_props.copy()
         tel_props.update({"action": "history", "ticker": ticker, "range_from": range_from, "range_to": range_to, "resolution": resolution, Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})

@@ -47,7 +47,7 @@ all_stoplosses = stoploss_repo.get_all_stoplosses(telemetry, tel_props)
 user_stoplosses = all_stoplosses[0]
 
 user = user_repo.get_user(user_stoplosses.user_id, telemetry, tel_props)
-order_message = OrderMessage.from_user_stoplosses(user_stoplosses, user)
+order_message = OrderMessage.from_stoplosses(user_stoplosses.stop_losses, user)
 
 
 

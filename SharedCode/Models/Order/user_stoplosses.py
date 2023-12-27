@@ -4,6 +4,7 @@ from dataclasses import dataclass
 import json
 from dataclasses import asdict
 from dacite import from_dict
+from enum import Enum
 class Constants:
     type = "type"
     ticker = "ticker"
@@ -14,23 +15,23 @@ class Constants:
     id = "id"
     stoplosses = "Stoplosses"
     check_at = "check_at"
-    
-    # Following are types of stoplosses 
-    # and their check_at values
-    check_at_closing = "closing"
-    check_at_30t = "30t"
-    check_at_hourly = "hourly"
-    
-    type_normal = "normal"
-    type_linear = "line"
-    type_trend = "trend"
-    
+
+class StoplossType(Enum):
+    normal = "normal"
+    line = "line"
+    trend = "trend"
+
+class StoplossCheckAt(Enum):
+    closing = "closing"
+    thirty_minute = "thirty_minute"
+    hourly = "hourly"
 @dataclass
 class Stoploss:
     id: str
     type: str
     ticker: str
     price: float
+    qty: int
     product_type: str
     trend_start: Optional[str] = None
     trend_end: Optional[str] = None
@@ -44,7 +45,11 @@ class UserStoplosses:
     stop_losses: List[Stoploss]
 
     def get_normal_stoplosses(self) -> List[Stoploss]:
-        normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == Constants.type_normal]
+        normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.normal]
+        return normal_stoplosses
+    
+    def get_30t_line_stoplosses(self) -> List[Stoploss]:
+        normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.line and stoploss.check_at == StoplossCheckAt.thirty_minute]
         return normal_stoplosses
     
     def get_stoplosses_dict(self) -> dict:
@@ -57,7 +62,17 @@ class UserStoplosses:
             existing_stoploss.__dict__ = stoploss.__dict__
         else:
             self.stop_losses.append(stoploss)
+
+    def get_symbols_from_stoplosses(self):
+        symbols = [stoploss.ticker for stoploss in self.stop_losses]
+        return ",".join(symbols)
     
+    def get_quote_dict(self):
+        data = {
+            "symbols": self.get_symbols_from_stoplosses()
+        }
+        return data
+
 # Example Usage
 # jsonstring = json.loads(myjsonstring)
 # root = Root.from_dict(jsonstring)

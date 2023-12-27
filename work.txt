@@ -1,14 +1,13 @@
-1 -> MarketStart Executor
-    -> SetMarketStopLossInFyers - Normal Stoplosses
 2 -> StopLossExecutor
     -> Runs every 30 minutes [9:43, 10:13......2:27]
         Based on the stoploss frequency[30 min or closing], execute stoploss if hit
 3 -> Strategy Executor per strategy
-4 -> OrderExecutor
-    -> processes orders/stoploss based on the sb message
+
 5 fyers_service
      -> for stoplosses check in orderbook if already similar stoploss is present
     -> While running trade based on strategy add stoploss in CosmosDB as well as in fyers
-5 -> Funds
-
 -------------------------
+Test the following
+1 - > MarketStartExecutor
+4 -> OrderExecutor
+    -> processes orders/stoploss based on the sb message

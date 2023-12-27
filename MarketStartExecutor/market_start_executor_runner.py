@@ -16,23 +16,22 @@ telemetry = LoggerService()
 user_repository = UserRepository()
 sb_service = ServiceBusService()
 
-operation_id = "RandomOperationId"
 order_topic_name = kv_service.get_secret(Constants.ORDER_TOPIC_NAME)
-tel_props = {
-    Constants.SERVICE: Constants.access_token_generator_service,
-    Constants.operation_id: operation_id,
-}
-
 
     
 def set_stoploss_for_user(user_stoplosses:UserStoplosses, tel_props):
     tel_props = tel_props.copy()
     tel_props.update({"action": "set_stoploss", "user_stoplosses": json.dumps(asdict(user_stoplosses)), "user_id": user_stoplosses.user_id})
+    stoplosses = user_stoplosses.get_normal_stoplosses()
+    
+    if stoplosses is None or len(stoplosses) == 0:
+        telemetry.info(f"No normal stoplosses found for user: {user_stoplosses.user_id}", tel_props)
+        return True, user_stoplosses.user_id
     
     try:
-        telemetry.info(f"Setting stoploss for {asdict(user_stoplosses)}", tel_props)
+        telemetry.info(f"Setting stoploss for user: {user_stoplosses.id} {asdict(stoplosses)}", tel_props)
         user = user_repository.get_user(user_stoplosses.user_id, telemetry, tel_props)
-        order_message = OrderMessage.from_user_stoplosses(user_stoplosses, user)
+        order_message = OrderMessage.from_stoplosses(stoplosses, user)
         sb_service.send_to_topic(json.dumps(asdict(order_message)), order_topic_name)
         telemetry.info(f"Stoploss set successfully for {asdict(user_stoplosses)}", tel_props)
         return True, user_stoplosses.user_id
@@ -59,7 +58,6 @@ def set_stoplosses_for_all_users(tel_props):
         futures = [executor.submit(set_stoploss_for_user, user_stoplosses, tel_props) for user_stoplosses in users_stoplosses]
         for future in concurrent.futures.as_completed(futures):
             try:
-                # If your fetch_and_store_token function returns any result, you can retrieve it here
                 result = future.result()
                 results.append(result)
                 if result:
@@ -68,15 +66,13 @@ def set_stoplosses_for_all_users(tel_props):
                         telemetry.info(f"Stoploss set successfully for user ID: {user_id}", tel_props)
                     else:
                         telemetry.info(f"Failed to set stoploss for user ID: {user_id}", tel_props)
-                    telemetry.info(f"Task completed successfully: {result}", tel_props)
                 else:
                     telemetry.error(f"Task failed: {result}", tel_props)
             except Exception as e:
-                # Handle any exceptions that were raised during the task execution
                 telemetry.exception(f"Task resulted in an exception: {e}", tel_props)
                 raise e
         
-    telemetry.info("set_stoplosses completed", tel_props)
+    telemetry.info("set_stoplosses_for_all_users completed", tel_props)
     return results
 
 

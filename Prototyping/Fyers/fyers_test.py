@@ -34,7 +34,7 @@ from SharedCode.Models.fyers_constants import (
 
 from dataclasses import asdict
 from dacite import from_dict
-from SharedCode.Models.holding import Holding
+from SharedCode.Models.Fyers.holding import Holding
 from SharedCode.Models.holdings_response import HoldingsResponse, Holding
 
 from SharedCode.Models.orderbook_response import OrderBookResponse, OrderBook
@@ -47,7 +47,7 @@ tel_props = {
     Constants.SERVICE: Constants.access_token_generator_service,
     Constants.operation_id: operation_id,
 }
-
+OrderType.market
 stoploss_repo = StoplossesRepository()
 kv_service = KeyVaultService()
 fyers_details = kv_service.get_fyers_user(0)
