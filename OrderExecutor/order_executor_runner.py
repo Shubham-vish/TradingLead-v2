@@ -37,13 +37,13 @@ def order_executor_runner(order_message:OrderMessage, tel_props):
     tel_props.update({"message":order_message, "user_id":order_message.user_id, "order_message":asdict(order_message)} )
     telemetry.info(f"Executing order: {order_message}", tel_props)    
     
-    if order_message.order_side == OrderSide.buy_stoploss:
+    if order_message.order_side == OrderSide.buy_stoploss.value:
         place_stoploss_order(order_message, tel_props)
     
-    elif order_message.order_side == OrderSide.buy:
+    elif order_message.order_side == OrderSide.buy.value:
         place_orders(order_message, tel_props)
         
-    elif order_message.order_side == OrderSide.sell:
+    elif order_message.order_side == OrderSide.sell.value:
         place_orders(order_message, tel_props)
     else:
         telemetry.info(f"Order side not supported: {order_message}", tel_props)

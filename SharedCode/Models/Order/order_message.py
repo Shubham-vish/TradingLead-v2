@@ -4,7 +4,7 @@ from SharedCode.Models.user import User
 from typing import Any, Optional, List
 from SharedCode.Models.Order.order import Order
 from typing import Union
-from SharedCode.Models.fyers_constants import OrderType
+from SharedCode.Models.Fyers.fyers_constants import OrderType
 from enum import Enum
 
 @dataclass

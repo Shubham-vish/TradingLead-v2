@@ -13,6 +13,10 @@ from dataclasses import asdict
 from SharedCode.Models.Order.user_stoplosses import UserStoplosses, Stoploss
 from SharedCode.Models.user import User
 from SharedCode.Repository.Fyers.fyers_service import FyersService
+from SharedCode.Models.Fyers.holdings_response import HoldingsResponse
+from SharedCode.Models.Fyers.net_positions_response import NetPositionResponse
+from SharedCode.Models.Fyers.quote_response import QuoteResponse, TickerLtp
+from typing import List
 
 kv_service = KeyVaultService()
 telemetry = LoggerService()
@@ -22,6 +26,21 @@ sb_service = ServiceBusService()
 operation_id = "RandomOperationId"
 order_topic_name = kv_service.get_secret(Constants.ORDER_TOPIC_NAME)
 
+
+def check_and_execute_stoploss(stoploss:Stoploss, fyers_service:FyersService, user:User, curr_qty:int, ltp:float, tel_props):
+    tel_props = tel_props.copy()
+    tel_props.update({"action": "check_and_execute_stoploss", "stoploss": json.dumps(asdict(stoploss)), "user_id": user.id})
+    
+    is_ltp_greater = ltp > stoploss.price
+    if is_ltp_greater and curr_qty < stoploss.qty:
+        telemetry.info(f"Buy Triggered for ticker: {stoploss.ticker} as ltp: {ltp} is greater than stoploss price: {stoploss.price} and cur_qty: {curr_qty} is less than stoploss qty: {stoploss.qty}", tel_props)
+        fyers_service.place_buy_market(stoploss.ticker, stoploss.qty - curr_qty, stoploss.product_type, tel_props)
+    elif not is_ltp_greater and curr_qty > 0:
+        telemetry.info(f"Sell triggered for ticker: {stoploss.ticker} as ltp: {ltp} is less than stoploss price: {stoploss.price} and cur_qty: {curr_qty} is more than 0", tel_props)
+        fyers_service.place_sell_market(stoploss.ticker, curr_qty, stoploss.product_type, tel_props)
+    else:
+        telemetry.info(f"Stoploss Sell/Buy not triggered for ticker: {stoploss.ticker} as ltp: {ltp} is greater than stoploss price: {stoploss.price} and cur_qty: {curr_qty} is greater than stoploss qty: {stoploss.qty}", tel_props)
+    
 
 def execute_stoploss_for_user(user_stoplosses:UserStoplosses, tel_props):
     tel_props = tel_props.copy()
@@ -43,13 +62,14 @@ def execute_stoploss_for_user(user_stoplosses:UserStoplosses, tel_props):
         holdings = fyers_service.get_holdings(tel_props)
         positions = fyers_service.get_positions(tel_props)
         quote_req = user_stoplosses.get_quote_dict()
-        quoteResponse = fyers_service.get_quote(quote_req, tel_props)
-        
+        quote_response = fyers_service.get_quote(quote_req, tel_props)
+        ticker_and_ltp = quote_response.get_ticker_and_ltp()
         
         for stoploss in stoplosses:
-            
             try:
-                fyers_service.check_and_execute_stoploss(stoploss, fyers_service, user, holdings, positions, tel_props)
+                ltp = next((item for item in ticker_and_ltp if item.ticker == stoploss.ticker), None)
+                curr_qty = holdings.get_quantity(stoploss.ticker) + positions.get_quantity(stoploss.ticker)
+                check_and_execute_stoploss(stoploss, fyers_service, user,curr_qty, ltp, tel_props)
             except Exception as e:
                 telemetry.exception(f"Error occurred while checking stoploss trigger for user: {user_stoplosses.id} : stoploss: {asdict(stoploss)}", tel_props)
                 exceptions.append((e, asdict(stoploss)))

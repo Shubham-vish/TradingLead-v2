@@ -43,13 +43,20 @@ class D:
 
 
 @dataclass
+class TickerLtp:
+    ticker: str
+    ltp: float
+
+@dataclass
 class QuoteResponse:
     code: int
     d: List[D]
     message: str
     s: str
 
-
+    def get_ticker_and_ltp(self) -> List[TickerLtp]:
+        res = [ TickerLtp(d.v.symbol, d.v.lp) for d in self.d]
+        return res
 # Example Usage
 # jsonstring = json.loads(myjsonstring)
 # root = Root.from_dict(jsonstring)

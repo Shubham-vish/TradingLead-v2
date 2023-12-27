@@ -3,20 +3,21 @@ from typing import List
 from .fyers_client_factory import FyersClientFactory
 from ..Logger.logger_service import LoggerService
 
-from SharedCode.Models.fyers_constants import (
+from SharedCode.Models.Fyers.fyers_constants import (
     ProductType,
     OrderSide,
     OrderType,
     Response,
 )
 
-from SharedCode.Models.net_positions_response import (
+from SharedCode.Models.Fyers.net_positions_response import (
     NetPositionResponse,
     NetPosition,
 )
 
-from SharedCode.Models.holdings_response import HoldingsResponse, Holding
-from SharedCode.Models.orderbook_response import OrderBookResponse, OrderBook
+from SharedCode.Models.Fyers.holdings_response import HoldingsResponse, Holding
+from SharedCode.Models.Fyers.orderbook_response import OrderBookResponse, OrderBook
+from SharedCode.Models.Fyers.quote_response import QuoteResponse
 from SharedCode.Models.Order.user_stoplosses import Stoploss
 import pandas as pd
 from datetime import timedelta
@@ -43,7 +44,7 @@ class FyersService:
     
     def place_order(self, ticker_name: str, qty: int, product_type: str, side: OrderSide, tel_props):
         tel_props = tel_props.copy()
-        side_str = "buy" if side == OrderSide.buy else "sell"    
+        side_str = "buy" if side == OrderSide.buy.value else "sell"    
         
         tel_props.update(
             {
@@ -57,7 +58,7 @@ class FyersService:
                 data = {
                     "symbol": ticker_name,
                     "qty": qty,
-                    "type": OrderType.market,
+                    "type": OrderType.market.value,
                     "side": side,
                     "productType": product_type,
                     "stoploss": 0,
@@ -118,7 +119,7 @@ class FyersService:
             }
         )
         
-        return self.place_order(ticker_name, qty, product_type, OrderSide.buy, tel_props)
+        return self.place_order(ticker_name, qty, product_type, OrderSide.buy.value, tel_props)
     
     def place_sell_market(
         self, ticker_name: str, qty: int, product_type: str, tel_props
@@ -137,7 +138,7 @@ class FyersService:
             }
         )
         
-        return self.place_order(ticker_name, qty, product_type, OrderSide.sell, tel_props)
+        return self.place_order(ticker_name, qty, product_type, OrderSide.sell.value, tel_props)
     
     def place_stoploss_for_buy_market_order(
         self,
@@ -186,7 +187,7 @@ class FyersService:
                     "symbol": ticker_name,
                     "qty": qty,
                     "type": OrderType.stoploss_market,
-                    "side": OrderSide.sell,
+                    "side": OrderSide.sell.value,
                     "productType": product_type,
                     "stoploss": 0,
                     "stopprice": stopprice,
@@ -452,11 +453,11 @@ class FyersService:
         
         for order in orders:
             telemetry.info(f"Processing order: {order}", tel_props)    
-            if(order.order_type == OrderType.market):
-                if order.side == OrderSide.buy:
+            if(order.order_type == OrderType.market.value):
+                if order.side == OrderSide.buy.value.value:
                     telemetry.info(f"Placing buy market order: {order}", tel_props)
                     self.place_buy_market(order.symbol, order.quantity, order.product_type, tel_props)
-                elif order.side == OrderSide.sell:
+                elif order.side == OrderSide.sell.value.value:
                     telemetry.info(f"Placing sell market order: {order}", tel_props)
                     self.place_sell_market(order.symbol, order.quantity, order.product_type, tel_props)
                 else:
@@ -497,18 +498,24 @@ class FyersService:
     # No retries implemented as of now
     # 
     
-    def get_quote(self, quote_req, tel_props):
+    def get_quote(self, quote_req, tel_props)-> QuoteResponse:
         tel_props = tel_props.copy()
         tel_props.update({"action": "get_quote", "quote_req": quote_req, Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})
         
         telemetry.info(f"Fetching quote for {quote_req}", tel_props)
-        try:
-            response = self.fyers_client.quote(quote_req)
-            telemetry.info(f"Fetched quote response for {quote_req}: {response}", tel_props)
-            return response
-        except Exception as e:
-            telemetry.exception(f"Error in fetching quote for {quote_req}: {e}", tel_props)
-            raise e    
+        for attempt in range(3):
+            try:
+                response = self.fyers_client.quotes(quote_req)
+                
+                telemetry.info(f"Fetched quote response for {quote_req}: {response}", tel_props)
+                quote_res = from_dict(data_class=QuoteResponse, data=response)
+                return quote_res
+            except Exception as e:
+                telemetry.exception(f"Error in fetching quote attempt: {attempt} for {quote_req}: {e}", tel_props)
+                continue
+        msg = f"Max retries in fetching quote for {quote_req}. Error in fetching quote"
+        telemetry.exception(msg, tel_props)
+        raise Exception(msg)
 
     def history(self, ticker, range_from, range_to, resolution, tel_props):
         tel_props = tel_props.copy()

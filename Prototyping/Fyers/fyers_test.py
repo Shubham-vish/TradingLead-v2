@@ -20,12 +20,12 @@ from SharedCode.Repository.Fyers.fyers_client_factory import FyersClientFactory
 from SharedCode.Repository.Fyers.fyers_service import FyersService
 from SharedCode.Repository.Fyers.fyers_service import FyersService
 from SharedCode.Repository.Fyers.fyers_client_factory import FyersClientFactory
-from SharedCode.Models.net_positions_response import (
+from SharedCode.Models.Fyers.net_positions_response import (
     NetPositionResponse,
     NetPosition,
 )
 
-from SharedCode.Models.fyers_constants import (
+from SharedCode.Models.Fyers.fyers_constants import (
     ProductType,
     OrderSide,
     OrderType,
@@ -35,9 +35,9 @@ from SharedCode.Models.fyers_constants import (
 from dataclasses import asdict
 from dacite import from_dict
 from SharedCode.Models.Fyers.holding import Holding
-from SharedCode.Models.holdings_response import HoldingsResponse, Holding
+from SharedCode.Models.Fyers.holdings_response import HoldingsResponse, Holding
 
-from SharedCode.Models.orderbook_response import OrderBookResponse, OrderBook
+from SharedCode.Models.Fyers.orderbook_response import OrderBookResponse, OrderBook
 operation_id = "RandomOperationId"
 
 from SharedCode.Repository.CosmosDB.stoplosses_repository import StoplossesRepository
@@ -47,7 +47,6 @@ tel_props = {
     Constants.SERVICE: Constants.access_token_generator_service,
     Constants.operation_id: operation_id,
 }
-OrderType.market
 stoploss_repo = StoplossesRepository()
 kv_service = KeyVaultService()
 fyers_details = kv_service.get_fyers_user(0)
@@ -56,12 +55,20 @@ fyers_client = FyersClientFactory.get_fyers_client(fyers_details)
 telemetry = LoggerService()
 
 ticker_name = "NSE:ICICIBANK-EQ"
-
 holdings = fyers_client.holdings()
 netpositison = fyers_service.get_positions(tel_props)
-
 orders = fyers_service.get_order_book(tel_props)
 
+symbols = "NSE:ICICIBANK-EQ,NSE:NIFTY24JANFUT,NSE:BATAINDIA-EQ"
+
+data = {
+    "symbols":symbols
+}
+quote_response = fyers_service.get_quote(data, tel_props)
+
+quote_response.get_ticker_and_ltp()
+
+asdict(quote_response)
 orders.orderBook
 orders.orderBook[0].side
 for order in orders.orderBook:
@@ -104,15 +111,18 @@ for order in orders.orderBook:
 ticker_name = "NSE:ICICIBANK-EQ"
 ticker_name = "NSE:NIFTY24JANFUT"
 ticker_name = "NSE:BATAINDIA-EQ"
-fyers_service.place_buy_market(ticker_name, 50, ProductType.margin, tel_props)
+
+
+OrderType.stoploss_limit.value
+fyers_service.place_buy_market(ticker_name, 50, ProductType.MARGIN.value, tel_props)
 res = fyers_client.orderbook()
 response = from_dict(data_class=OrderBookResponse, data=res)
 
 pos = fyers_service.get_positions(tel_props)
-pos.get_positions_of_type(ProductType.margin)
+pos.get_positions_of_type(ProductType.MARGIN.value)
 
 
-fyers_service.place_stoploss_for_buy_market_order(ticker_name=ticker_name, qty=50, stopprice=21400, product_type=ProductType.margin, tel_props=tel_props)
+fyers_service.place_stoploss_for_buy_market_order(ticker_name=ticker_name, qty=50, stopprice=21400, product_type=ProductType.MARGIN.value, tel_props=tel_props)
 
 userStoplosses = UserStoplosses("1db30ee5-e01a-421f-9f60-bb72ffe31add", "1db30ee5-e01a-421f-9f60-bb72ffe31add", stop_losses=[])
 stoploss_repo.update_user_stoplosses(userStoplosses, telemetry, tel_props)
@@ -142,12 +152,12 @@ holdings = fyers_service.get_holdings(tel_props)
 
 ticker_name = "NSE:NIFTY24JANFUT"
 qty = 50
-fyers_service.place_buy_market(ticker_name, qty, ProductType.margin, tel_props)
+fyers_service.place_buy_market(ticker_name, qty, ProductType.MARGIN.value, tel_props)
 
 # Able to set stoploss for Nifty future buy position, Once the stopprice is reached the order gets executed
 # but if position is buy position is not there it will create a nakes sell position
 fyers_service.place_stoploss_for_buy_market_order(
-    ticker_name, qty, 21400, ProductType.margin, tel_props
+    ticker_name, qty, 21400, ProductType.MARGIN.value, tel_props
 )
 
 

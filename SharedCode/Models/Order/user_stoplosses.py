@@ -5,6 +5,8 @@ import json
 from dataclasses import asdict
 from dacite import from_dict
 from enum import Enum
+from SharedCode.Models.Fyers.fyers_constants import OrderType, OrderSide, ProductType
+
 class Constants:
     type = "type"
     ticker = "ticker"
@@ -25,14 +27,15 @@ class StoplossCheckAt(Enum):
     closing = "closing"
     thirty_minute = "thirty_minute"
     hourly = "hourly"
+    
 @dataclass
 class Stoploss:
     id: str
-    type: str
     ticker: str
     price: float
     qty: int
-    product_type: str
+    type: StoplossType
+    product_type: ProductType
     trend_start: Optional[str] = None
     trend_end: Optional[str] = None
     check_at: Optional[str] = None
@@ -45,11 +48,11 @@ class UserStoplosses:
     stop_losses: List[Stoploss]
 
     def get_normal_stoplosses(self) -> List[Stoploss]:
-        normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.normal]
+        normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.normal.value]
         return normal_stoplosses
     
     def get_30t_line_stoplosses(self) -> List[Stoploss]:
-        normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.line and stoploss.check_at == StoplossCheckAt.thirty_minute]
+        normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.line.value and stoploss.check_at == StoplossCheckAt.thirty_minute.value]
         return normal_stoplosses
     
     def get_stoplosses_dict(self) -> dict:

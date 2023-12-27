@@ -53,7 +53,7 @@ from SharedCode.Repository.Fyers.Models.fyers_constants import (
 positions = fyers_service.get_positions(tel_props)
 
 positions.net_positions
-positions.get_positions_of_type(ProductType.margin)
+positions.get_positions_of_type(ProductType.MARGIN.value)
 
 # netposition_response = NetPositionResponse.from_dict(pos_json)
 
@@ -62,12 +62,12 @@ positions.get_positions_of_type(ProductType.margin)
 # //Following code is able to execute Nifty fuy of 1 lot
 ticker_name = "NSE:NIFTY24JANFUT"
 qty = 50
-fyers_service.place_buy_market(ticker_name, qty, ProductType.margin, tel_props)
+fyers_service.place_buy_market(ticker_name, qty, ProductType.MARGIN.value, tel_props)
 
 # Able to set stoploss for Nifty future buy position, Once the stopprice is reached the order gets executed
 # but if position is buy position is not there it will create a nakes sell position
 fyers_service.place_stoploss_for_buy_market_order(
-    ticker_name, qty, 21400, ProductType.margin, tel_props
+    ticker_name, qty, 21400, ProductType.MARGIN.value, tel_props
 )
 
 
