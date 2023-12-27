@@ -3,7 +3,7 @@ import sys
 
 # Below code is for testing
 sys.path.append(os.path.abspath(os.path.join("../../..")))
-
+sys.path.append(os.path.abspath(os.path.join("..")))
 from Prototyping.setupConfig import setup_config
 
 setup_config()
@@ -29,80 +29,116 @@ from SharedCode.Models.fyers_constants import (
     ProductType,
     OrderSide,
     OrderType,
+    
 )
 
-kv_service = KeyVaultService()
+from dataclasses import asdict
+from dacite import from_dict
+from SharedCode.Models.holding import Holding
+from SharedCode.Models.holdings_response import HoldingsResponse, Holding
 
+from SharedCode.Models.orderbook_response import OrderBookResponse, OrderBook
 operation_id = "RandomOperationId"
+
+from SharedCode.Repository.CosmosDB.stoplosses_repository import StoplossesRepository
+from SharedCode.Models.Order.user_stoplosses import UserStoplosses, Stoploss
 
 tel_props = {
     Constants.SERVICE: Constants.access_token_generator_service,
     Constants.operation_id: operation_id,
 }
 
-fyers_details = kv_service.get_fyers_user(1)
-
+stoploss_repo = StoplossesRepository()
+kv_service = KeyVaultService()
+fyers_details = kv_service.get_fyers_user(0)
 fyers_service = FyersService(fyers_details)
+fyers_client = FyersClientFactory.get_fyers_client(fyers_details)
+telemetry = LoggerService()
 
 ticker_name = "NSE:ICICIBANK-EQ"
 
-
-from SharedCode.Models.dataclass_from_dict import dataclass_from_dict
-from dataclasses import asdict
-from SharedCode.Models.holdings_response import HoldingsResponse, Holding
-
-
-fyers_client = FyersClientFactory.get_fyers_client(fyers_details)
-
-from SharedCode.Models.holding import Holding
-
 holdings = fyers_client.holdings()
-from dacite import from_dict
+netpositison = fyers_service.get_positions(tel_props)
 
-data = {
-    'costPrice': 100.0,
-    'id': 1,
-    'symbol': 'XYZ',
-    'quantity': 10,
-    'segment': 2,
-    'pl': 50.0,
-    'ltp': 150.0,
-    'marketVal': 1000.0,
-    'holdingType': 'TypeA'
-}
+orders = fyers_service.get_order_book(tel_props)
 
-Holding(**data)
-holding_instance = from_dict(data_class=Holding, data=data)
+orders.orderBook
+orders.orderBook[0].side
+for order in orders.orderBook:
+    print(order.stopPrice, order.status, order.symbol, order.side, order.type, order.qty, order.filledQty, order.productType)
+#   6 NSE:INTELLECT-EQ - Working
+#   6 NSE:INDHOTEL-EQ - Working
+#   5 NSE:MPHASIS-EQ - Rejected
+#   2 NSE:BATAINDIA-EQ - Filled
+#   2 NSE:IEX-EQ - Filled
+#   2 is Filled
+#   6 is Working i.e active orders
+# 1 is cancelled
+# 5 is rejected
+# 6 NSE:INTELLECT-EQ 1 1 1 0 CNC
+# 6 NSE:INDHOTEL-EQ -1 1 1 0 INTRADAY
+# 5 NSE:MPHASIS-EQ -1 1 3 0 CNC
+# 2 NSE:BATAINDIA-EQ 1 2 3 3 CNC
+# 2 NSE:IEX-EQ 1 2 2 2 CNC
+# 2 NSE:TECHM-EQ 1 1 1 1 INTRADAY
+# 2 NSE:ICICIBANK-EQ 1 2 1 1 CNC
+# 2 NSE:NIFTY24JANFUT 1 2 50 50 MARGIN
+# 5 NSE:ICICIBANK-EQ -1 3 50 0 CNC
+# 5 NSE:ICICIBANK-EQ -1 3 50 0 CNC
+# 5 NSE:ICICIBANK-EQ -1 3 50 0 CNC
+# 2 NSE:ICICIBANK-EQ 1 2 3 3 CNC
+# 5 NSE:ICICIBANK-EQ -1 3 50 0 CNC
+# 5 NSE:ICICIBANK-EQ -1 3 50 0 CNC
+# 5 NSE:ICICIBANK-EQ -1 3 50 0 CNC
+# 5 NSE:ICICIBANK-EQ -1 3 5 0 CNC
+# 5 NSE:ICICIBANK-EQ -1 3 5 0 CNC
+# 5 NSE:ICICIBANK-EQ -1 3 5 0 CNC
+# 6 NSE:ICICIBANK-EQ -1 3 1 0 CNC
+# 6 NSE:NIFTY24JANFUT -1 3 50 0 MARGIN
+# 1 NSE:NIFTY24JANFUT -1 3 50 0 MARGIN
+# 6 NSE:ICICIBANK-EQ -1 3 2 0 CNC
+# 5 NSE:ICICIBANK-EQ -1 3 2 0 CNC
+# 5 NSE:ICICIBANK-EQ -1 3 2 0 CNC
+# 5 NSE:ICICIBANK-EQ -1 3 2 0 CNC
 
+ticker_name = "NSE:ICICIBANK-EQ"
+ticker_name = "NSE:NIFTY24JANFUT"
+ticker_name = "NSE:BATAINDIA-EQ"
+fyers_service.place_buy_market(ticker_name, 50, ProductType.margin, tel_props)
+res = fyers_client.orderbook()
+response = from_dict(data_class=OrderBookResponse, data=res)
+
+pos = fyers_service.get_positions(tel_props)
+pos.get_positions_of_type(ProductType.margin)
+
+
+fyers_service.place_stoploss_for_buy_market_order(ticker_name=ticker_name, qty=50, stopprice=21400, product_type=ProductType.margin, tel_props=tel_props)
+
+userStoplosses = UserStoplosses("1db30ee5-e01a-421f-9f60-bb72ffe31add", "1db30ee5-e01a-421f-9f60-bb72ffe31add", stop_losses=[])
+stoploss_repo.update_user_stoplosses(userStoplosses, telemetry, tel_props)
+
+userstoplosses = stoploss_repo.get_user_stoplosses("1db30ee5-e01a-421f-9f60-bb72ffe31add", telemetry, tel_props)
+
+stoploss = Stoploss("1db30ee5-e01a-421f-9f60-bb72ffe31add", "normal", ticker_name, 1620.0, product_type="CNC", check_at="30t")
+stoploss_repo.store_user_stoplosses("1db30ee5-e01a-421f-9f60-bb72ffe31add", stoploss, telemetry, tel_props)
+
+all_stoplosses = stoploss_repo.get_all_stoplosses(telemetry, tel_props)
+stoplosses = all_stoplosses[1].stop_losses
+stoplosses = [stoploss]
+fyers_service.set_stop_loss(userstoplosses.stop_losses[0], 1, tel_props)
+fyers_service.set_stop_losses(userstoplosses.stop_losses, tel_props)
+
+fyers_service.place_stoploss_for_buy_market_order(ticker_name=ticker_name, qty=2, stopprice=990, product_type=ProductType.cnc, tel_props=tel_props)
+
+
+# -----------------
+# ---------
+# ---------
+# ---------
 hres = from_dict(data_class=HoldingsResponse, data=holdings)
-type(holdings)
-
 HoldingsResponse.from_dict(holdings)
 holdings = fyers_service.get_holdings(tel_props)
 
-netpositison = fyers_service.get_positions(tel_props)
-pos = from_dict(data_class=NetPositionResponse, data=netpositison)
-holdings.get_quantity("NSE:GAIL-EQ")
-
-type(holdings)
-
-
-ss = dataclass_from_dict(HoldingsResponse, asdict(holdings))
-
-type(holdings.holdings[0])
-for holding in holdings.holdings:
-    print(type(holding))
-    
-    
-fyers_client.orderbook()
-holdings.get_quantity("NSE:GAIL-EQ")
-from SharedCode.Models.holdings_response import HoldingsResponse, Holding
-hold_model = HoldingsResponse.from_dict(holdings)
-hold_model.get_quantity("NSE:GAIL-EQ")
-positions = fyers_service.get_positions(tel_props)
-positions.get_quantity("NSE:GAIL-EQ")
-positions.net_positions
-positions.get_positions_of_type(ProductType.margin)
 
 ticker_name = "NSE:NIFTY24JANFUT"
 qty = 50
@@ -135,6 +171,3 @@ fyers_client.holdings()
 
 
 fyers_client.positions()
-
-
-#

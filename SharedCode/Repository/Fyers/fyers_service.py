@@ -22,6 +22,8 @@ import pandas as pd
 from datetime import timedelta
 from SharedCode.Utils.constants import Constants
 import json
+from dacite import from_dict
+from dataclasses import asdict
 telemetry = LoggerService()
 
 
@@ -112,6 +114,7 @@ class FyersService:
         product_type: str,
         tel_props,
     ):
+        # For CNC it will not place order for the quantity more than positions plus holding
         """_summary_
         # Able to set stoploss for Nifty future buy position, Once the stopprice is reached the order gets executed
         # but if position is buy position is not there it will create a nakes sell position
@@ -301,7 +304,7 @@ class FyersService:
             try:
                 res = self.fyers_client.orderbook()
                 telemetry.info(f"Returning Order Book response: {res}", tel_props)
-                response = OrderBookResponse.from_dict(res)
+                response = from_dict(data_class=OrderBookResponse, data=res)
 
                 if response.s == Response.OK:
                     return response
@@ -350,9 +353,8 @@ class FyersService:
     
         
     def set_stop_loss(self, stoploss: Stoploss, qty, tel_props):
-        
         tel_props = tel_props.copy()
-        tel_props.update({"action": "setStoploss", "stoploss": stoploss.to_dict(), "qty": qty})
+        tel_props.update({"action": "setStoploss", "stoploss": asdict(stoploss), "qty": qty})
         telemetry.info(f"Processing stoploss: {stoploss.ticker}, {qty}", tel_props)
         response = self.place_stoploss_for_buy_market_order(
             stoploss.ticker,
@@ -369,14 +371,17 @@ class FyersService:
     def set_stop_losses(self, stoplosses: List[Stoploss], tel_props):
         
         tel_props = tel_props.copy()
-        tel_props.update({"action": "setStoplosses", "stoplosses": [stoploss.to_dict() for stoploss in stoplosses], Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})
+        tel_props.update({"action": "setStoplosses", "stoplosses": [asdict(stoploss) for stoploss in stoplosses], Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})
         
-        positions = self.get_positions(tel_props)
-        telemetry.info(f"Positions: {positions}", tel_props)
+        telemetry.info(f"Processing stoplosses: {stoplosses}", tel_props)
         
         hldng_res = self.get_holdings(tel_props)
         pos_res = self.get_positions(tel_props)
         orderbook = self.get_order_book(tel_props)
+        
+        telemetry.info(f"Current holdings: {hldng_res}", tel_props)  
+        telemetry.info(f"Current positions: {pos_res}", tel_props)
+        telemetry.info(f"Current orderbook: {orderbook}", tel_props)
         exception_occurred = False
         
         for stoploss in stoplosses:
@@ -384,25 +389,26 @@ class FyersService:
             try:
                 telemetry.info(f"Processing stoploss: {stoploss}", tel_props)    
                 
-                qty_positions = pos_res.get_qty(stoploss.ticker)
-                qty_holdings = hldng_res.get_qty(stoploss.ticker)
+                qty_positions = pos_res.get_quantity(stoploss.ticker)
+                qty_holdings = hldng_res.get_quantity(stoploss.ticker)
                 
                 qty = qty_positions + qty_holdings
-                
-                if not orderbook.is_same_order_present(stoploss.ticker, qty):
-                    cur_orders = orderbook.get_orders_for_ticker(stoploss.ticker)
-                    telemetry.info(f"Current orders: {cur_orders}", tel_props)
+                telemetry.info(f"Qty for {stoploss.ticker}: {qty}", tel_props)
+                if not orderbook.is_same_stoploss_present(stoploss.ticker, qty):
+                    cur_orders = orderbook.get_stoploss_orders_for_ticker(stoploss.ticker)
                     if cur_orders:
+                        telemetry.info(f"Current orders already exist for {stoploss.ticker}, {qty}: {cur_orders}", tel_props)
                         self.cancel_orders([order.id for order in cur_orders], tel_props)
-                        telemetry.info(f"Exited current orders: {cur_orders}", tel_props)
-                    if self.set_stop_loss(stoploss, qty, tel_props):
-                        telemetry.info(f"Stoploss set for {stoploss}", tel_props)
+                        telemetry.info(f"Exited current orders for {stoploss.ticker}, {qty}: {cur_orders}", tel_props)
                     else:
-                        exception_occurred = True
-                        telemetry.info(f"Stoploss not set for -> {stoploss.ticker}, {qty}", tel_props)
+                        telemetry.info(f"No current orders for {stoploss.ticker}, {qty}", tel_props)
                     
+                    response = self.set_stop_loss(stoploss, qty, tel_props)
+                    telemetry.info(f"Stoploss set for {stoploss}", tel_props)
+                else:
+                    telemetry.info(f"Stoploss already set for -> {stoploss.ticker}, {qty}", tel_props)
             except Exception as e:
-                telemetry.exception(f"Error in getting qty: {stoploss}", tel_props)
+                telemetry.exception(f"Error in getting qty: {stoploss}, {e}", tel_props)
                 exception_occurred = True
                 
         if exception_occurred:
