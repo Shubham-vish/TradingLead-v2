@@ -6,22 +6,7 @@
 			"label": "func: host start",
 			"command": "host start",
 			"problemMatcher": "$func-python-watch",
-			"isBackground": true,
-			"dependsOn": "pip install (functions)"
-		},
-		{
-			"label": "pip install (functions)",
-			"type": "shell",
-			"osx": {
-				"command": "pip install -r requirements.txt"
-			},
-			"windows": {
-				"command": "pip install -r requirements.txt"
-			},
-			"linux": {
-				"command": "pip install -r requirements.txt"
-			},
-			"problemMatcher": []
+			"isBackground": true
 		}
 	]
 }

@@ -2,7 +2,7 @@ import os
 import sys
 
 # Below code is for testing
-sys.path.append(os.path.abspath(os.path.join("../../..")))
+sys.path.append(os.path.abspath(os.path.join("../..")))
 sys.path.append(os.path.abspath(os.path.join("..")))
 from Prototyping.setupConfig import setup_config
 

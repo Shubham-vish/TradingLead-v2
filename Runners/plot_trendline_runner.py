@@ -56,26 +56,3 @@ def generate_chart(date1, date2, ticker, chart_type, point):
             else:
                 logging.error('Max retries reached. Exiting.')
                 raise e  # Re-raise the exception to handle it upstream
-
-def main(req: func.HttpRequest) -> func.HttpResponse:
-    logging.info('Python HTTP trigger function processed a request.')
-
-    date1 = req.params.get('date1')
-    date2 = req.params.get('date2')
-    ticker = req.params.get('ticker')
-    chart_type = req.params.get('chart_type')
-    point = req.params.get('point')
-
-    logging.info(f'Received parameters: date1={date1}, date2={date2}, ticker={ticker}, chart_type={chart_type}, point={point}')
-
-    if not point:
-        point = 'Close'
-    if not ticker:
-        ticker = 'AAPL'
-
-    try:
-        html_string = generate_chart(date1, date2, ticker, chart_type, point)
-        return func.HttpResponse(body=html_string, mimetype='text/html')
-    except Exception as e:
-        logging.error(f'An error occurred: {str(e)}.')
-        return func.HttpResponse("An error occurred", status_code=500)
