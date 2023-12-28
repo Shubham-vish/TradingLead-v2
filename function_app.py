@@ -461,7 +461,10 @@ def TickerListService(req: func.HttpRequest,  context: func.Context) -> func.Htt
 # -------------------------------
 number_of_days = int(os.environ[Constants.number_of_days_to_fetch_participation_data])
 
-@app.timer_trigger(schedule="0 */30 * * * *", arg_name="myTimer", run_on_startup=False,
+
+
+# From 6PM to 10PM
+@app.timer_trigger(schedule="0 0 13,14,15,16,17 * * *", arg_name="myTimer", run_on_startup=False,
               use_monitor=False) 
 def FetchAndStoreParticipantsData(myTimer: func.TimerRequest, context: func.Context) -> None:
     
@@ -489,8 +492,8 @@ def FetchAndStoreParticipantsData(myTimer: func.TimerRequest, context: func.Cont
     
     telemetry.info(f'Python timer trigger function FetchStoreParticipantsData ran at {utc_timestamp} Completed', tel_props)
     
-
-@app.timer_trigger(schedule="0 */30 * * * *", arg_name="myTimer", run_on_startup=False,
+# at 4PM = 0 30 10 * * *, and at 12PM = 0 30 6 * * *
+@app.timer_trigger(schedule="0 30 6,10 * * *", arg_name="myTimer", run_on_startup=False,
               use_monitor=False) 
 def FetchAndStoreHistoryData(myTimer: func.TimerRequest,  context: func.Context) -> None:
     
@@ -516,8 +519,8 @@ def FetchAndStoreHistoryData(myTimer: func.TimerRequest,  context: func.Context)
             tzinfo=datetime.timezone.utc).isoformat()
     telemetry.info(f'Python timer trigger function FetchStoreHidstoryData completed at {utc_timestamp}', tel_props)
     
-    
-@app.timer_trigger(schedule="0 */30 * * * *", arg_name="myTimer", run_on_startup=False,
+# Every 3 hours
+@app.timer_trigger(schedule="0 0 */3 * * *", arg_name="myTimer", run_on_startup=False,
               use_monitor=False) 
 def TimerTriggerForAccessToken(myTimer: func.TimerRequest,  context: func.Context) -> None:
     
