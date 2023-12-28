@@ -55,10 +55,11 @@ fyers_client = FyersClientFactory.get_fyers_client(fyers_details)
 telemetry = LoggerService()
 
 ticker_name = "NSE:ICICIBANK-EQ"
-holdings = fyers_client.holdings()
 netpositison = fyers_service.get_positions(tel_props)
 orders = fyers_service.get_order_book(tel_props)
-
+holdingResponse = fyers_service.get_holdings(tel_props)
+res = fyers_client.holdings()
+holdingResponse.holdings
 symbols = "NSE:ICICIBANK-EQ,NSE:NIFTY24JANFUT,NSE:BATAINDIA-EQ"
 
 data = {
@@ -67,6 +68,8 @@ data = {
 quote_response = fyers_service.get_quote(data, tel_props)
 
 quote_response.get_ticker_and_ltp()
+
+
 
 asdict(quote_response)
 orders.orderBook
@@ -114,7 +117,7 @@ ticker_name = "NSE:BATAINDIA-EQ"
 
 
 OrderType.stoploss_limit.value
-fyers_service.place_buy_market(ticker_name, 50, ProductType.MARGIN.value, tel_props)
+fyers_service.place_buy_market(ticker_name, 1, ProductType.CNC.value, tel_props)
 res = fyers_client.orderbook()
 response = from_dict(data_class=OrderBookResponse, data=res)
 
@@ -122,14 +125,14 @@ pos = fyers_service.get_positions(tel_props)
 pos.get_positions_of_type(ProductType.MARGIN.value)
 
 
-fyers_service.place_stoploss_for_buy_market_order(ticker_name=ticker_name, qty=50, stopprice=21400, product_type=ProductType.MARGIN.value, tel_props=tel_props)
+fyers_service.place_stoploss_for_buy_market_order(ticker_name=ticker_name, qty=1, stopprice=1000, product_type=ProductType.CNC.value, tel_props=tel_props)
 
 userStoplosses = UserStoplosses("1db30ee5-e01a-421f-9f60-bb72ffe31add", "1db30ee5-e01a-421f-9f60-bb72ffe31add", stop_losses=[])
 stoploss_repo.update_user_stoplosses(userStoplosses, telemetry, tel_props)
 
 userstoplosses = stoploss_repo.get_user_stoplosses("1db30ee5-e01a-421f-9f60-bb72ffe31add", telemetry, tel_props)
 
-stoploss = Stoploss("1db30ee5-e01a-421f-9f60-bb72ffe31add", "normal", ticker_name, 1620.0, product_type="CNC", check_at="30t")
+stoploss = Stoploss("1db30ee5-e01a-421f-9f60-bb72ffe31add", "normal", ticker_name, 1000.0, product_type="CNC", check_at="30t")
 stoploss_repo.store_user_stoplosses("1db30ee5-e01a-421f-9f60-bb72ffe31add", stoploss, telemetry, tel_props)
 
 all_stoplosses = stoploss_repo.get_all_stoplosses(telemetry, tel_props)
@@ -138,18 +141,13 @@ stoplosses = [stoploss]
 fyers_service.set_stop_loss(userstoplosses.stop_losses[0], 1, tel_props)
 fyers_service.set_stop_losses(userstoplosses.stop_losses, tel_props)
 
-fyers_service.place_stoploss_for_buy_market_order(ticker_name=ticker_name, qty=2, stopprice=990, product_type=ProductType.cnc, tel_props=tel_props)
+fyers_service.place_stoploss_for_buy_market_order(ticker_name=ticker_name, qty=2, stopprice=990, product_type=ProductType.CNC.value, tel_props=tel_props)
 
 
 # -----------------
 # ---------
 # ---------
 # ---------
-hres = from_dict(data_class=HoldingsResponse, data=holdings)
-HoldingsResponse.from_dict(holdings)
-holdings = fyers_service.get_holdings(tel_props)
-
-
 ticker_name = "NSE:NIFTY24JANFUT"
 qty = 50
 fyers_service.place_buy_market(ticker_name, qty, ProductType.MARGIN.value, tel_props)
@@ -168,7 +166,7 @@ fyers_service.exit_all_positions(tel_props)
 ticker_name = "NSE:LEMONTREE-EQ"
 qty = 1
 # Able to place buy order in CNC
-fyers_service.place_buy_market(ticker_name, qty, ProductType.cnc, tel_props)
+fyers_service.place_buy_market(ticker_name, qty, ProductType.CNC.value, tel_props)
 
 # Able to set stoploss for buy CNC order, once the stopprice is reached the order gets executed
 # This doesnt get executed when there is no holding or active position for given quantity

@@ -17,6 +17,7 @@ from SharedCode.Models.Fyers.holdings_response import HoldingsResponse
 from SharedCode.Models.Fyers.net_positions_response import NetPositionResponse
 from SharedCode.Models.Fyers.quote_response import QuoteResponse, TickerLtp
 from typing import List
+from SharedCode.Models.Order.user_stoplosses import StoplossCheckAt
 
 kv_service = KeyVaultService()
 telemetry = LoggerService()
@@ -42,13 +43,13 @@ def check_and_execute_stoploss(stoploss:Stoploss, fyers_service:FyersService, us
         telemetry.info(f"Stoploss Sell/Buy not triggered for ticker: {stoploss.ticker} as ltp: {ltp} is greater than stoploss price: {stoploss.price} and cur_qty: {curr_qty} is greater than stoploss qty: {stoploss.qty}", tel_props)
     
 
-def execute_stoploss_for_user(user_stoplosses:UserStoplosses, tel_props):
+def execute_stoploss_for_user(user_stoplosses:UserStoplosses,  check_at:StoplossCheckAt, tel_props,):
     tel_props = tel_props.copy()
     tel_props.update({"action": "execute_stoploss_for_user", "user_stoplosses": json.dumps(asdict(user_stoplosses)), "user_id": user_stoplosses.user_id})
-    stoplosses = user_stoplosses.get_30t_line_stoplosses()
+    stoplosses = user_stoplosses.get_line_stoplosses(check_at)
     
     if stoplosses is None or len(stoplosses) == 0:
-        telemetry.info(f"No get_30t_line_stoplosses stoplosses found for user: {user_stoplosses.user_id}", tel_props)
+        telemetry.info(f"No {check_at.value} stoplosses found for user: {user_stoplosses.user_id}", tel_props)
         return True, user_stoplosses.user_id
     
     try:
@@ -88,7 +89,7 @@ def execute_stoploss_for_user(user_stoplosses:UserStoplosses, tel_props):
         return False, user_stoplosses.user_id
     
     
-def execute_stoplosses_for_all_users(tel_props):
+def execute_stoplosses_for_all_users(check_at:StoplossCheckAt, tel_props):
     tel_props = tel_props.copy()
     tel_props.update({"action": "execute_stoplosses_for_all_users"})
     stoploss_repo = StoplossesRepository()
@@ -102,8 +103,8 @@ def execute_stoplosses_for_all_users(tel_props):
     results = []
     
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        executor.map(execute_stoploss_for_user, users_stoplosses, tel_props)
-        futures = [executor.submit(execute_stoploss_for_user, user_stoplosses, tel_props) for user_stoplosses in users_stoplosses]
+        executor.map(execute_stoploss_for_user, users_stoplosses, check_at, tel_props)
+        futures = [executor.submit(execute_stoploss_for_user, user_stoplosses, check_at, tel_props) for user_stoplosses in users_stoplosses]
         for future in concurrent.futures.as_completed(futures):
             try:
                 result = future.result()
@@ -124,6 +125,7 @@ def execute_stoplosses_for_all_users(tel_props):
     return results
 
 
-def stoploss_executor_runner(tel_props):
-    execute_stoplosses_for_all_users(tel_props)
-    telemetry.info("stoploss_executor_runner completed", tel_props)
+def stoploss_executor_runner(check_at:StoplossCheckAt, tel_props):
+    results = execute_stoplosses_for_all_users(check_at, tel_props)
+    telemetry.info(f"stoploss_executor_runner completed with results: {results}", tel_props)
+    return results

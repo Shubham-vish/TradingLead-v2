@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import json
 from dataclasses import asdict
 from dacite import from_dict
-from enum import Enum
+from enum import StrEnum, Enum
 from SharedCode.Models.Fyers.fyers_constants import OrderType, OrderSide, ProductType
 
 class Constants:
@@ -18,12 +18,12 @@ class Constants:
     stoplosses = "Stoplosses"
     check_at = "check_at"
 
-class StoplossType(Enum):
+class StoplossType(StrEnum):
     normal = "normal"
     line = "line"
     trend = "trend"
 
-class StoplossCheckAt(Enum):
+class StoplossCheckAt(StrEnum):
     closing = "closing"
     thirty_minute = "thirty_minute"
     hourly = "hourly"
@@ -31,11 +31,11 @@ class StoplossCheckAt(Enum):
 @dataclass
 class Stoploss:
     id: str
+    type: str
     ticker: str
     price: float
     qty: int
-    type: StoplossType
-    product_type: ProductType
+    product_type: str
     trend_start: Optional[str] = None
     trend_end: Optional[str] = None
     check_at: Optional[str] = None
@@ -53,6 +53,15 @@ class UserStoplosses:
     
     def get_30t_line_stoplosses(self) -> List[Stoploss]:
         normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.line.value and stoploss.check_at == StoplossCheckAt.thirty_minute.value]
+        return normal_stoplosses
+    
+    def get_line_stoplosses(self, check_at:StoplossCheckAt):
+        stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.line.value and stoploss.check_at == check_at.value]
+        return stoplosses    
+    
+
+    def get_closing_line_stoplosses(self) -> List[Stoploss]:
+        normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.line.value and stoploss.check_at == StoplossCheckAt.closing.value]
         return normal_stoplosses
     
     def get_stoplosses_dict(self) -> dict:

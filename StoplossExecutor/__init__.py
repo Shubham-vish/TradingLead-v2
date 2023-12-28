@@ -8,7 +8,10 @@ import azure.functions as func
 from SharedCode.Repository.Logger.logger_service import LoggerService
 from SharedCode.Utils.constants import Constants
 from SharedCode.Utils.utility import FunctionUtils
-from StopLossExecutor.stoploss_executor_runner import stoploss_executor_runner
+from SharedCode.Models.Order.user_stoplosses import UserStoplosses, StoplossCheckAt
+from .stoploss_executor_runner import stoploss_executor_runner
+
+
 telemetry = LoggerService()
 
 
@@ -29,7 +32,7 @@ def main(mytimer: func.TimerRequest,  context: func.Context) -> None:
 
     telemetry.info(f'Timer trigger function StopLossExecutor started at {utc_timestamp}', tel_props)
     
-    results = market_start_executer_runner(tel_props)
+    results = stoploss_executor_runner(StoplossCheckAt.thirty_minute , tel_props)
     
     telemetry.info(f"set_stoplosses_for_all_users completed with results: {results}", tel_props)
     

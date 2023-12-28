@@ -11,3 +11,4 @@ class Holding:
     ltp: float
     marketVal: float
     holdingType: str
+    qty_t1:int

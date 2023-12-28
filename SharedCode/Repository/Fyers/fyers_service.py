@@ -186,7 +186,7 @@ class FyersService:
                 data = {
                     "symbol": ticker_name,
                     "qty": qty,
-                    "type": OrderType.stoploss_market,
+                    "type": OrderType.stoploss_market.value,
                     "side": OrderSide.sell.value,
                     "productType": product_type,
                     "stoploss": 0,
@@ -313,7 +313,7 @@ class FyersService:
             try:
                 res = self.fyers_client.holdings()
                 telemetry.info(f"Returning holdings response: {res}", tel_props)
-                response = HoldingsResponse(**res)
+                response = from_dict(data_class=HoldingsResponse, data=res)
 
                 if response.s == Response.OK:
                     return response

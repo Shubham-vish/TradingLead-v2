@@ -1,10 +1,11 @@
 2 -> StopLossExecutor
     -> Runs every 30 minutes [9:43, 10:13......2:27]
         Based on the stoploss frequency[30 min or closing], execute stoploss if hit
+
 3 -> Strategy Executor per strategy
 
 5 fyers_service
-     -> for stoplosses check in orderbook if already similar stoploss is present
+    -> for stoplosses check in orderbook if already similar stoploss is present
     -> While running trade based on strategy add stoploss in CosmosDB as well as in fyers
 -------------------------
 Test the following

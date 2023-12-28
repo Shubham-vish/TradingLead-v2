@@ -20,7 +20,7 @@ class OrderMessage:
     fyers_user_name: str
     kv_secret_name: str
     name: str
-    order_side: OrderType
+    order_side: str
     orders: Optional[Union[List[Order], List[Stoploss]]] = None
     
     

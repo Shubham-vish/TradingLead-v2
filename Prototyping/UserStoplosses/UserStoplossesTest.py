@@ -50,21 +50,27 @@ tel_props = {
 stoploss_repo = StoplossesRepository()
 user_repo = UserRepository()
 
-stoploss = {"id": "dfasdf", "type": "normal", "ticker": "AAPL", "price": 150.0, "check_at": "30t", "product_type": "MARGIN"}
 
 stoploss_repo.get_all_stoplosses(telemetry, tel_props)
 
-stoploss_model = from_dict(data_class=Stoploss, data=stoploss)
-stoploss2 = Stoploss("dfasdf", "normal", "AAPL", 150.0, product_type="CNC", check_at="30t")
-stoploss_model.price = 200.0
+stoploss1 = Stoploss("dfdasdf", "AAPL",price= 160.0, qty=3, type="normal", product_type="CNC", check_at="30t")
 
-stoplosses = [stoploss_model, stoploss2]
+stoploss2 = Stoploss("dfasddf", "AAPL",price= 150.0, qty=3, type="normal", product_type="CNC", check_at="30t")
 
-user_stoplosses = UserStoplosses("1db30ee5-e01a-421f-9f60-bb72ffe31add", "1db30ee5-e01a-421f-9f60-bb72ffe31add", stop_losses=stoplosses)
+stoploss3 = Stoploss("dfdasdf", "AAPL",price= 150.0, qty=3, type="normal", product_type="CNC", check_at="clsoing")
 
-user = user_repo.get_user("1db30ee5-e01a-421f-9f60-bb72ffe31add", telemetry, tel_props)
-stoploss = from_dict(data_class=Stoploss, data=stoploss)
-stoploss_repo.store_user_stoplosses(user.id, stoploss, telemetry, tel_props)
+# from_dict(data_class=Stoploss, data= asdict(stoploss1))
+stoplosses = [stoploss1, stoploss2, stoploss3]
+user_id = "1db30ee5-e01a-421f-9f60-bb72ffe31add"
+user_stoplosses = UserStoplosses(user_id, user_id, stop_losses=stoplosses)
+
+user = user_repo.get_user(user_id, telemetry, tel_props)
+
+stoploss_repo.store_user_stoplosses(user.id, stoploss1, telemetry, tel_props)
+
+
+for stop in stoplosses:
+    stoploss_repo.store_user_stoplosses(user.id, stop, telemetry, tel_props)
 
 next((sl for sl in stoplosses if sl.id == stoploss.id), None)
 
