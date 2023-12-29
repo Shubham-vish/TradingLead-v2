@@ -8,9 +8,11 @@ from SharedCode.Utils.constants import Constants
 import concurrent.futures
 
 
+
 kv_service = KeyVaultService()
 telemetry = LoggerService()
 redis_cache_service = RedisCacheService()
+
 
 def fetch_and_store_token(user, tel_props):
     max_retries = 3
