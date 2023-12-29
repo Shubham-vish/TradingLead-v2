@@ -114,7 +114,7 @@ class NetPositionResponse:
             for position in self.net_positions
             if position.product_type == product_type
         ]
-        
+
     def get_quantity(self, ticker: str) -> int:
         for position in self.net_positions:
             if position.symbol == ticker:

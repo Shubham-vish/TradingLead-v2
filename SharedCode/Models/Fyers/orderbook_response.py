@@ -1,8 +1,7 @@
 from typing import List
-from typing import Any
 from dataclasses import dataclass
-import json
 from enum import Enum
+
 
 @dataclass
 class OrderStatus:
@@ -11,12 +10,14 @@ class OrderStatus:
     cancelled = 1
     rejected = 5
 
+
 @dataclass
 class OrderType(Enum):
     limit = 1
     market = 2
     stoploss_market = 3
     stoploss_limit = 4
+
 
 @dataclass
 class OrderBook:
@@ -63,6 +64,7 @@ class OrderBook:
         else:
             return "Unknown"
 
+
 @dataclass
 class OrderBookResponse:
     s: str
@@ -72,12 +74,33 @@ class OrderBookResponse:
 
     def is_same_stoploss_present(self, ticker: str, qty: int) -> bool:
         for order in self.orderBook:
-            if order.symbol == ticker and order.qty == qty and order.stopPrice != 0 and order.status == OrderStatus.working and (order.type == OrderType.stoploss_limit.value or order.type == OrderType.stoploss_market.value):
+            if (
+                order.symbol == ticker
+                and order.qty == qty
+                and order.stopPrice != 0
+                and order.status == OrderStatus.working
+                and (
+                    order.type == OrderType.stoploss_limit.value
+                    or order.type == OrderType.stoploss_market.value
+                )
+            ):
                 return True
         return False
 
     def get_stoploss_orders_for_ticker(self, ticker: str) -> List[OrderBook]:
-        return [order for order in self.orderBook if order.symbol == ticker and order.stopPrice != 0 and order.status == OrderStatus.working and (order.type == OrderType.stoploss_limit.value or order.type == OrderType.stoploss_market.value)]
+        return [
+            order
+            for order in self.orderBook
+            if order.symbol == ticker
+            and order.stopPrice != 0
+            and order.status == OrderStatus.working
+            and (
+                order.type == OrderType.stoploss_limit.value
+                or order.type == OrderType.stoploss_market.value
+            )
+        ]
+
+
 # Example Usage
 # jsonstring = json.loads(myjsonstring)
 # root = Root.from_dict(jsonstring)

@@ -39,16 +39,6 @@ fyers_service = FyersService(fyers_details)
 ticker_name = "NSE:ICICIBANK-EQ"
 pos_json = fyers_client.positions()
 
-from SharedCode.Repository.Fyers.Models.net_positions_response import (
-    NetPositionResponse,
-    NetPosition,
-)
-
-from SharedCode.Repository.Fyers.Models.fyers_constants import (
-    ProductType,
-    OrderSide,
-    OrderType,
-)
 
 positions = fyers_service.get_positions(tel_props)
 

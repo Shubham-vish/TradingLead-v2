@@ -4,13 +4,13 @@ from SharedCode.Repository.Cache.redis_cache_service import RedisCacheService
 from SharedCode.Utils.constants import Constants
 from SharedCode.Utils.utility import FunctionUtils
 
+
 class FyersClientFactory:
     clients = {}
     expiry_duration = datetime.timedelta(hours=1)
 
     @staticmethod
     def get_fyers_client(user_fyers_details):
-
         client_id = user_fyers_details[Constants.client_id]
         current_time = datetime.datetime.now()
 
@@ -34,6 +34,12 @@ class FyersClientFactory:
         redis_cache_service = RedisCacheService()
         access_token_for_user = redis_cache_service.get_decoded_value(redis_key)
         # Logic to create a new FyersModel instance
-        return fyersModel.FyersModel(client_id=client_id, is_async=False, token=access_token_for_user, log_path="/tmp")
+        return fyersModel.FyersModel(
+            client_id=client_id,
+            is_async=False,
+            token=access_token_for_user,
+            log_path="/tmp",
+        )
+
 
 # Rest of the code remains the same

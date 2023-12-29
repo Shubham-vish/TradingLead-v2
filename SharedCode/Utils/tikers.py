@@ -52,5 +52,4 @@ class Tickers:
         "NSE:UPL-EQ",
         "NSE:ULTRACEMCO-EQ",
         "NSE:WIPRO-EQ",
-        
     ]

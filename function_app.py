@@ -10,10 +10,12 @@ import json
 
 # from SharedCode.Models.Order.order_message import OrderMessage
 # from SharedCode.Models.Order.user_stoplosses import UserStoplosses, Stoploss
-# from SharedCode.Models.user import User
+from SharedCode.Models.user import User
+
 # from SharedCode.Repository.Fyers.fyers_service import FyersService
 # from SharedCode.Models.Fyers.holdings_response import HoldingsResponse
-# from SharedCode.Models.Fyers.net_positions_response import NetPositionResponse
+from SharedCode.Models.Fyers.net_positions_res import NetPositionResponse
+
 # from SharedCode.Models.Fyers.quote_response import QuoteResponse, TickerLtp
 # from SharedCode.Models.Order.user_stoplosses import StoplossCheckAt
 # from typing import List
@@ -21,41 +23,44 @@ from SharedCode.Utils.utility import FunctionUtils
 from SharedCode.Repository.Logger.logger_service import LoggerService
 from SharedCode.Utils.constants import Constants
 
-# from SharedCode.Repository.Cache.redis_cache_service import RedisCacheService
+
 # from SharedCode.Repository.ServiceBus.servicebus_service import ServiceBusService
 
+from SharedCode.Repository.Cache.redis_cache_service import RedisCacheService
 from SharedCode.Repository.KeyVault.keyvault_service import KeyVaultService
 from SharedCode.Repository.CosmosDB.CosmosUtils.cosmos_db_service import CosmosDbService
 
 # from SharedCode.Repository.CosmosDB.stoplosses_repository import StoplossesRepository
-# from SharedCode.Repository.CosmosDB.user_repository import UserRepository
-# from SharedCode.Repository.CosmosDB.holdings_repository import HoldingsRepository
+from SharedCode.Repository.CosmosDB.user_repository import UserRepository
+from SharedCode.Repository.CosmosDB.holdings_repository import HoldingsRepository
 from SharedCode.Repository.CosmosDB.alerts_repository import AlertsRepository
 
 
 # from Runners.order_executor_runner import order_executor_runner
 from Runners.access_token_generator_runner import access_token_generator_runner
+from Runners.plot_trendline_runner import generate_chart
+
+
+from Runners.stock_history_fetcher import fetch_store_history_data_runner
 
 # from Runners.stoploss_executor_runner import stoploss_executor_runner
 
-# from Runners.plot_trendline_runner import generate_chart
+
 # from Runners.market_start_executor_runner import market_start_executer_runner
 # from Runners.market_closing_executor_runner import market_closing_executor_runner
-# from Runners.fetch_store_stock_history_data_runner import (
-#     fetch_store_history_data_runner,
-# )
-# from Runners.fetch_store_participants_data_runner import fetch_store_data_for_n_days
+
+from Runners.fetch_store_participants_data_runner import fetch_store_data_for_n_days
 
 telemetry = LoggerService()
 
 kv_service = KeyVaultService()
-# user_repository = UserRepository()
+user_repository = UserRepository()
 # sb_service = ServiceBusService()
 
 database_id = kv_service.get_secret(Constants.DATABASE_ID)
 cosmos_db_service = CosmosDbService(database_id)
-# holding_container_name = kv_service.get_secret(Constants.HOLDINGS_CONTAINER_NAME)
-# holdings_repo = HoldingsRepository(cosmos_db_service, holding_container_name)
+holding_container_name = kv_service.get_secret(Constants.HOLDINGS_CONTAINER_NAME)
+holdings_repo = HoldingsRepository(cosmos_db_service, holding_container_name)
 alerts_container_name = kv_service.get_secret(Constants.ALERTS_CONTAINER_NAME)
 alerts_repo = AlertsRepository(cosmos_db_service, alerts_container_name)
 
@@ -273,83 +278,83 @@ def TimerTriggerForAccessToken(
 #     )
 
 
-# # HTTP Endpoints for Regular work
-# # -------------------------------
-# # -------------------------------
-# # -------------------------------
-# # -------------------------------
-# @app.route(route="Holdings/{userId}", auth_level=func.AuthLevel.ANONYMOUS)
-# def Holdings(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
-#     telemetry.info("Python HTTP trigger function processed a request.")
+# HTTP Endpoints for Regular work
+# -------------------------------
+# -------------------------------
+# -------------------------------
+# -------------------------------
+@app.route(route="Holdings/{userId}", auth_level=func.AuthLevel.ANONYMOUS)
+def Holdings(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
+    telemetry.info("Python HTTP trigger function processed a request.")
 
-#     operation_id = FunctionUtils.get_operation_id(context)
+    operation_id = FunctionUtils.get_operation_id(context)
 
-#     tel_props = {
-#         Constants.operation_id: operation_id,
-#         Constants.SERVICE: Constants.holdings_service,
-#         Constants.REQUEST_METHOD: req.method,
-#     }
+    tel_props = {
+        Constants.operation_id: operation_id,
+        Constants.SERVICE: Constants.holdings_service,
+        Constants.REQUEST_METHOD: req.method,
+    }
 
-#     telemetry.info("Processing request to fetch holdings.", tel_props)
+    telemetry.info("Processing request to fetch holdings.", tel_props)
 
-#     user_id = req.route_params.get(Constants.REQUEST_PARAM_USER_ID)
+    user_id = req.route_params.get(Constants.REQUEST_PARAM_USER_ID)
 
-#     telemetry.info(f"User ID: {user_id}", tel_props)
+    telemetry.info(f"User ID: {user_id}", tel_props)
 
-#     if not user_id:
-#         telemetry.error("Missing userId parameter", tel_props)
-#         return func.HttpResponse("Missing userId parameter", status_code=400)
+    if not user_id:
+        telemetry.error("Missing userId parameter", tel_props)
+        return func.HttpResponse("Missing userId parameter", status_code=400)
 
-#     if req.method == Constants.HTTP_GET:
-#         holdings = holdings_repo.fetch_user_holdings(user_id, telemetry, tel_props)
-#         if holdings is not None:
-#             telemetry.info("Holdings found", tel_props)
-#             return func.HttpResponse(json.dumps(holdings), mimetype="application/json")
-#         else:
-#             telemetry.info("No holdings found", tel_props)
-#             return func.HttpResponse("No holdings found", status_code=404)
+    if req.method == Constants.HTTP_GET:
+        holdings = holdings_repo.fetch_user_holdings(user_id, telemetry, tel_props)
+        if holdings is not None:
+            telemetry.info("Holdings found", tel_props)
+            return func.HttpResponse(json.dumps(holdings), mimetype="application/json")
+        else:
+            telemetry.info("No holdings found", tel_props)
+            return func.HttpResponse("No holdings found", status_code=404)
 
-#     elif req.method == Constants.HTTP_POST:
-#         file = req.files.get("file")
-#         if file:
-#             stream = io.StringIO(file.read().decode("UTF8"), newline=None)
-#             csv_reader = csv.DictReader(stream)
-#             holdings_data = []
-#             for row in csv_reader:
-#                 holdings_data.append(
-#                     {
-#                         "Instrument": row["Instrument"],
-#                         "Qty": int(row["Qty."]),
-#                         "AvgCost": float(row["Avg. cost"]),
-#                         "LTP": float(row["LTP"]),
-#                         "CurVal": float(row["Cur. val"]),
-#                         "P&L": float(row["P&L"]),
-#                         "NetChg": float(row["Net chg."]),
-#                         "DayChg": float(row["Day chg."]),
-#                     }
-#                 )
-#             holdings = holdings_repo.create_or_update_user_holdings(
-#                 user_id, holdings_data, telemetry, tel_props
-#             )
+    elif req.method == Constants.HTTP_POST:
+        file = req.files.get("file")
+        if file:
+            stream = io.StringIO(file.read().decode("UTF8"), newline=None)
+            csv_reader = csv.DictReader(stream)
+            holdings_data = []
+            for row in csv_reader:
+                holdings_data.append(
+                    {
+                        "Instrument": row["Instrument"],
+                        "Qty": int(row["Qty."]),
+                        "AvgCost": float(row["Avg. cost"]),
+                        "LTP": float(row["LTP"]),
+                        "CurVal": float(row["Cur. val"]),
+                        "P&L": float(row["P&L"]),
+                        "NetChg": float(row["Net chg."]),
+                        "DayChg": float(row["Day chg."]),
+                    }
+                )
+            holdings = holdings_repo.create_or_update_user_holdings(
+                user_id, holdings_data, telemetry, tel_props
+            )
 
-#             if holdings is not None:
-#                 holdings = holdings["holdings"]
-#                 telemetry.info("Holdings created/updated", tel_props)
-#                 return func.HttpResponse(
-#                     json.dumps(holdings), mimetype="application/json"
-#                 )
-#             else:
-#                 telemetry.error(
-#                     "An error occurred while creating/updating holdings", tel_props
-#                 )
-#                 return func.HttpResponse("No holdings found", status_code=404)
-#         else:
-#             telemetry.error("No file uploaded", tel_props)
-#             return func.HttpResponse("No file uploaded", status_code=400)
+            if holdings is not None:
+                holdings = holdings["holdings"]
+                telemetry.info("Holdings created/updated", tel_props)
+                return func.HttpResponse(
+                    json.dumps(holdings), mimetype="application/json"
+                )
+            else:
+                telemetry.error(
+                    "An error occurred while creating/updating holdings", tel_props
+                )
+                return func.HttpResponse("No holdings found", status_code=404)
+        else:
+            telemetry.error("No file uploaded", tel_props)
+            return func.HttpResponse("No file uploaded", status_code=400)
 
-#     else:
-#         telemetry.error("Method not supported", tel_props)
-#         return func.HttpResponse(f"Method not supported: {req.method}", status_code=405)
+    else:
+        telemetry.error("Method not supported", tel_props)
+        return func.HttpResponse(f"Method not supported: {req.method}", status_code=405)
 
 
 application_json = "application/json"
@@ -453,125 +458,125 @@ def Alerts(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
         )
 
 
-# @app.route(route="PlotTrendLine", auth_level=func.AuthLevel.ANONYMOUS)
-# def PlotTrendLine(req: func.HttpRequest) -> func.HttpResponse:
-#     telemetry.info("Python HTTP trigger function processed a request.")
+@app.route(route="PlotTrendLine", auth_level=func.AuthLevel.ANONYMOUS)
+def PlotTrendLine(req: func.HttpRequest) -> func.HttpResponse:
+    telemetry.info("Python HTTP trigger function processed a request.")
 
-#     date1 = req.params.get("date1")
-#     date2 = req.params.get("date2")
-#     ticker = req.params.get("ticker")
-#     chart_type = req.params.get("chart_type")
-#     point = req.params.get("point")
+    date1 = req.params.get("date1")
+    date2 = req.params.get("date2")
+    ticker = req.params.get("ticker")
+    chart_type = req.params.get("chart_type")
+    point = req.params.get("point")
 
-#     telemetry.info(
-#         f"Received parameters: date1={date1}, date2={date2}, ticker={ticker}, chart_type={chart_type}, point={point}"
-#     )
+    telemetry.info(
+        f"Received parameters: date1={date1}, date2={date2}, ticker={ticker}, chart_type={chart_type}, point={point}"
+    )
 
-#     if not point:
-#         point = "Close"
-#     if not ticker:
-#         ticker = "AAPL"
+    if not point:
+        point = "Close"
+    if not ticker:
+        ticker = "AAPL"
 
-#     try:
-#         html_string = generate_chart(date1, date2, ticker, chart_type, point)
-#         return func.HttpResponse(body=html_string, mimetype="text/html")
-#     except Exception as e:
-#         telemetry.error(f"An error occurred: {str(e)}.")
-#         return func.HttpResponse("An error occurred", status_code=500)
-
-
-# @app.route(route="Users", auth_level=func.AuthLevel.ANONYMOUS)
-# def Users(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
-#     telemetry.info("Python HTTP trigger function processed a request.")
-
-#     operation_id = FunctionUtils.get_operation_id(context)
-
-#     tel_props = {
-#         Constants.operation_id: operation_id,
-#         Constants.SERVICE: Constants.user_service,
-#         Constants.REQUEST_METHOD: req.method,
-#     }
-
-#     telemetry.info("Python HTTP trigger for users started a request.", tel_props)
-
-#     if req.method == Constants.HTTP_POST:
-#         req_body = req.get_json()
-#         user_id = req_body.get("userId")
-#         email = req_body.get("email")
-#         name = req_body.get("name")
-
-#         tel_props.update(
-#             {
-#                 "request": req.get_json(),
-#             }
-#         )
-
-#         if user_id:
-#             user = User(id=user_id, user_id=user_id, email=email, name=name)
-#             user_repository.store_user(user, telemetry, tel_props)
-#             telemetry.info("User stored successfully.", tel_props)
-#             return func.HttpResponse("User stored successfully.", status_code=200)
-#         else:
-#             telemetry.exception("Invalid request body.", tel_props)
-#             return func.HttpResponse("Invalid request body.", status_code=400)
-#     else:
-#         telemetry.exception("Invalid request method.", tel_props)
-#         return func.HttpResponse("Invalid request method.", status_code=400)
+    try:
+        html_string = generate_chart(date1, date2, ticker, chart_type, point)
+        return func.HttpResponse(body=html_string, mimetype="text/html")
+    except Exception as e:
+        telemetry.error(f"An error occurred: {str(e)}.")
+        return func.HttpResponse("An error occurred", status_code=500)
 
 
-# @app.route(route="TickerListService", auth_level=func.AuthLevel.ANONYMOUS)
-# def TickerListService(
-#     req: func.HttpRequest, context: func.Context
-# ) -> func.HttpResponse:
-#     telemetry.info("Python HTTP trigger function processed a request.")
+@app.route(route="Users", auth_level=func.AuthLevel.ANONYMOUS)
+def Users(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
+    telemetry.info("Python HTTP trigger function processed a request.")
 
-#     operation_id = FunctionUtils.get_operation_id(context)
+    operation_id = FunctionUtils.get_operation_id(context)
 
-#     tel_props = {
-#         Constants.operation_id: operation_id,
-#         Constants.SERVICE: Constants.fetch_stock_info_service,
-#     }
+    tel_props = {
+        Constants.operation_id: operation_id,
+        Constants.SERVICE: Constants.user_service,
+        Constants.REQUEST_METHOD: req.method,
+    }
 
-#     telemetry.info("Processing request to fetch stock info.", tel_props)
+    telemetry.info("Python HTTP trigger for users started a request.", tel_props)
 
-#     # Initialize RedisCacheService
-#     redis_cache = RedisCacheService()
+    if req.method == Constants.HTTP_POST:
+        req_body = req.get_json()
+        user_id = req_body.get("userId")
+        email = req_body.get("email")
+        name = req_body.get("name")
 
-#     cache_key = "ticker_list"
-#     cached_data = redis_cache.get_value(cache_key)
+        tel_props.update(
+            {
+                "request": req.get_json(),
+            }
+        )
 
-#     # Check if data is already in cache
-#     if cached_data:
-#         telemetry.info("Data found in cache.", tel_props)
-#         return func.HttpResponse(body=cached_data, mimetype="application/json")
+        if user_id:
+            user = User(id=user_id, user_id=user_id, email=email, name=name)
+            user_repository.store_user(user, telemetry, tel_props)
+            telemetry.info("User stored successfully.", tel_props)
+            return func.HttpResponse("User stored successfully.", status_code=200)
+        else:
+            telemetry.exception("Invalid request body.", tel_props)
+            return func.HttpResponse("Invalid request body.", status_code=400)
+    else:
+        telemetry.exception("Invalid request method.", tel_props)
+        return func.HttpResponse("Invalid request method.", status_code=400)
 
-#     # If not in cache, read from Excel
-#     telemetry.info("Data not found in cache. Reading from Excel file.", tel_props)
-#     excel_path = os.getcwd() + "/Assets/TickerList.xlsx"
 
-#     try:
-#         df = pd.read_excel(excel_path, sheet_name="Sheet1")
-#         stock_info = df[["Symbol_NS", "Company Name"]].to_dict("records")
-#         cleaned_data = [
-#             {k: (v if pd.notna(v) else None) for k, v in record.items()}
-#             for record in stock_info
-#         ]
-#         json_data = json.dumps(cleaned_data)
+@app.route(route="TickerListService", auth_level=func.AuthLevel.ANONYMOUS)
+def TickerListService(
+    req: func.HttpRequest, context: func.Context
+) -> func.HttpResponse:
+    telemetry.info("Python HTTP trigger function processed a request.")
 
-#         # Save the fetched data to Redis cache
-#         redis_cache.set_value(cache_key, json_data)
-#         tel_props.update(
-#             {Constants.RESPONSE_BODY: json_data, Constants.CACHE_KEY: cache_key}
-#         )
+    operation_id = FunctionUtils.get_operation_id(context)
 
-#         telemetry.info("Data saved to cache.", tel_props)
-#         return func.HttpResponse(body=json_data, mimetype="application/json")
+    tel_props = {
+        Constants.operation_id: operation_id,
+        Constants.SERVICE: Constants.fetch_stock_info_service,
+    }
 
-#     except Exception as e:
-#         telemetry.exception(f"An error occurred: {str(e)}", tel_props)
-#         return func.HttpResponse(
-#             f"An error occurred while reading the Excel file: {str(e)}", status_code=500
-#         )
+    telemetry.info("Processing request to fetch stock info.", tel_props)
+
+    # Initialize RedisCacheService
+    redis_cache = RedisCacheService()
+
+    cache_key = "ticker_list"
+    cached_data = redis_cache.get_value(cache_key)
+
+    # Check if data is already in cache
+    if cached_data:
+        telemetry.info("Data found in cache.", tel_props)
+        return func.HttpResponse(body=cached_data, mimetype="application/json")
+
+    # If not in cache, read from Excel
+    telemetry.info("Data not found in cache. Reading from Excel file.", tel_props)
+    excel_path = os.getcwd() + "/Assets/TickerList.xlsx"
+
+    try:
+        df = pd.read_excel(excel_path, sheet_name="Sheet1")
+        stock_info = df[["Symbol_NS", "Company Name"]].to_dict("records")
+        cleaned_data = [
+            {k: (v if pd.notna(v) else None) for k, v in record.items()}
+            for record in stock_info
+        ]
+        json_data = json.dumps(cleaned_data)
+
+        # Save the fetched data to Redis cache
+        redis_cache.set_value(cache_key, json_data)
+        tel_props.update(
+            {Constants.RESPONSE_BODY: json_data, Constants.CACHE_KEY: cache_key}
+        )
+
+        telemetry.info("Data saved to cache.", tel_props)
+        return func.HttpResponse(body=json_data, mimetype="application/json")
+
+    except Exception as e:
+        telemetry.exception(f"An error occurred: {str(e)}", tel_props)
+        return func.HttpResponse(
+            f"An error occurred while reading the Excel file: {str(e)}", status_code=500
+        )
 
 
 # # Timer Trigger Regular Automation
@@ -579,83 +584,83 @@ def Alerts(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 # # -------------------------------
 # # -------------------------------
 # # -------------------------------
-# number_of_days = int(os.environ[Constants.number_of_days_to_fetch_participation_data])
+number_of_days = int(os.environ[Constants.number_of_days_to_fetch_participation_data])
 
 
-# # From 6PM to 10PM
-# @app.timer_trigger(
-#     schedule="0 0 13,14,15,16,17 * * *",
-#     arg_name="myTimer",
-#     run_on_startup=False,
-#     use_monitor=False,
-# )
-# def FetchAndStoreParticipantsData(
-#     myTimer: func.TimerRequest, context: func.Context
-# ) -> None:
-#     utc_timestamp = (
-#         datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
-#     )
+# From 6PM to 10PM
+@app.timer_trigger(
+    schedule="0 0 13,14,15,16,17 * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
+)
+def FetchAndStoreParticipantsData(
+    myTimer: func.TimerRequest, context: func.Context
+) -> None:
+    utc_timestamp = (
+        datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    )
 
-#     operation_id = FunctionUtils.get_operation_id(context)
+    operation_id = FunctionUtils.get_operation_id(context)
 
-#     tel_props = {
-#         Constants.SERVICE: Constants.fetch_store_participants_data_service,
-#         Constants.operation_id: operation_id,
-#         number_of_days: number_of_days,
-#     }
+    tel_props = {
+        Constants.SERVICE: Constants.fetch_store_participants_data_service,
+        Constants.operation_id: operation_id,
+        number_of_days: number_of_days,
+    }
 
-#     if myTimer.past_due:
-#         telemetry.info("The timer is past due!", tel_props)
+    if myTimer.past_due:
+        telemetry.info("The timer is past due!", tel_props)
 
-#     telemetry.info(
-#         f"Python timer trigger function FetchStoreParticipantsData started at {utc_timestamp}",
-#         tel_props,
-#     )
+    telemetry.info(
+        f"Python timer trigger function FetchStoreParticipantsData started at {utc_timestamp}",
+        tel_props,
+    )
 
-#     fetch_store_data_for_n_days(number_of_days, tel_props)
+    fetch_store_data_for_n_days(number_of_days, tel_props)
 
-#     utc_timestamp = (
-#         datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
-#     )
+    utc_timestamp = (
+        datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    )
 
-#     telemetry.info(
-#         f"Python timer trigger function FetchStoreParticipantsData ran at {utc_timestamp} Completed",
-#         tel_props,
-#     )
+    telemetry.info(
+        f"Python timer trigger function FetchStoreParticipantsData ran at {utc_timestamp} Completed",
+        tel_props,
+    )
 
 
-# # at 4PM = 0 30 10 * * *, and at 12PM = 0 30 6 * * *
-# @app.timer_trigger(
-#     schedule="0 30 6,10 * * *",
-#     arg_name="myTimer",
-#     run_on_startup=False,
-#     use_monitor=False,
-# )
-# def FetchAndStoreHistoryData(myTimer: func.TimerRequest, context: func.Context) -> None:
-#     utc_timestamp = (
-#         datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
-#     )
+# at 4PM = 0 30 10 * * *, and at 12PM = 0 30 6 * * *
+@app.timer_trigger(
+    schedule="0 30 6,10 * * *",
+    arg_name="myTimer",
+    run_on_startup=False,
+    use_monitor=False,
+)
+def FetchAndStoreHistoryData(myTimer: func.TimerRequest, context: func.Context) -> None:
+    utc_timestamp = (
+        datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    )
 
-#     operation_id = FunctionUtils.get_operation_id(context)
+    operation_id = FunctionUtils.get_operation_id(context)
 
-#     tel_props = {
-#         Constants.SERVICE: Constants.fetch_store_history_data_service,
-#         Constants.operation_id: operation_id,
-#     }
+    tel_props = {
+        Constants.SERVICE: Constants.fetch_store_history_data_service,
+        Constants.operation_id: operation_id,
+    }
 
-#     telemetry.info(
-#         f"Python timer trigger function started at {utc_timestamp}", tel_props
-#     )
+    telemetry.info(
+        f"Python timer trigger function started at {utc_timestamp}", tel_props
+    )
 
-#     if myTimer.past_due:
-#         telemetry.info("The timer is past due!", tel_props)
+    if myTimer.past_due:
+        telemetry.info("The timer is past due!", tel_props)
 
-#     fetch_store_history_data_runner(tel_props)
+    fetch_store_history_data_runner(tel_props)
 
-#     utc_timestamp = (
-#         datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
-#     )
-#     telemetry.info(
-#         f"Python timer trigger function FetchStoreHidstoryData completed at {utc_timestamp}",
-#         tel_props,
-#     )
+    utc_timestamp = (
+        datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc).isoformat()
+    )
+    telemetry.info(
+        f"Python timer trigger function FetchStoreHidstoryData completed at {utc_timestamp}",
+        tel_props,
+    )

@@ -1,7 +1,7 @@
 from typing import List
-from typing import Any
 from dataclasses import dataclass
-import json
+
+
 @dataclass
 class Cmd:
     c: float
@@ -11,6 +11,7 @@ class Cmd:
     t: int
     tf: str
     v: int
+
 
 @dataclass
 class V:
@@ -47,6 +48,7 @@ class TickerLtp:
     ticker: str
     ltp: float
 
+
 @dataclass
 class QuoteResponse:
     code: int
@@ -55,8 +57,10 @@ class QuoteResponse:
     s: str
 
     def get_ticker_and_ltp(self) -> List[TickerLtp]:
-        res = [ TickerLtp(d.v.symbol, d.v.lp) for d in self.d]
+        res = [TickerLtp(d.v.symbol, d.v.lp) for d in self.d]
         return res
+
+
 # Example Usage
 # jsonstring = json.loads(myjsonstring)
 # root = Root.from_dict(jsonstring)

@@ -20,17 +20,9 @@ from SharedCode.Repository.Fyers.fyers_client_factory import FyersClientFactory
 from SharedCode.Repository.Fyers.fyers_service import FyersService
 from SharedCode.Repository.Fyers.fyers_service import FyersService
 from SharedCode.Repository.Fyers.fyers_client_factory import FyersClientFactory
-from SharedCode.Models.Fyers.net_positions_response import (
-    NetPositionResponse,
-    NetPosition,
-)
 
-from SharedCode.Models.Fyers.fyers_constants import (
-    ProductType,
-    OrderSide,
-    OrderType,
-    
-)
+
+from SharedCode.Models.Fyers.constants import OrderSide, OrderType, Response
 
 from dataclasses import asdict
 from dacite import from_dict
@@ -38,6 +30,7 @@ from SharedCode.Models.Fyers.holding import Holding
 from SharedCode.Models.Fyers.holdings_response import HoldingsResponse, Holding
 
 from SharedCode.Models.Fyers.orderbook_response import OrderBookResponse, OrderBook
+
 operation_id = "RandomOperationId"
 
 from SharedCode.Repository.CosmosDB.stoplosses_repository import StoplossesRepository
@@ -62,20 +55,26 @@ res = fyers_client.holdings()
 holdingResponse.holdings
 symbols = "NSE:ICICIBANK-EQ,NSE:NIFTY24JANFUT,NSE:BATAINDIA-EQ"
 
-data = {
-    "symbols":symbols
-}
+data = {"symbols": symbols}
 quote_response = fyers_service.get_quote(data, tel_props)
 
 quote_response.get_ticker_and_ltp()
-
 
 
 asdict(quote_response)
 orders.orderBook
 orders.orderBook[0].side
 for order in orders.orderBook:
-    print(order.stopPrice, order.status, order.symbol, order.side, order.type, order.qty, order.filledQty, order.productType)
+    print(
+        order.stopPrice,
+        order.status,
+        order.symbol,
+        order.side,
+        order.type,
+        order.qty,
+        order.filledQty,
+        order.productType,
+    )
 #   6 NSE:INTELLECT-EQ - Working
 #   6 NSE:INDHOTEL-EQ - Working
 #   5 NSE:MPHASIS-EQ - Rejected
@@ -125,15 +124,36 @@ pos = fyers_service.get_positions(tel_props)
 pos.get_positions_of_type(ProductType.MARGIN.value)
 
 
-fyers_service.place_stoploss_for_buy_market_order(ticker_name=ticker_name, qty=1, stopprice=1000, product_type=ProductType.CNC.value, tel_props=tel_props)
+fyers_service.place_stoploss_for_buy_market_order(
+    ticker_name=ticker_name,
+    qty=1,
+    stopprice=1000,
+    product_type=ProductType.CNC.value,
+    tel_props=tel_props,
+)
 
-userStoplosses = UserStoplosses("1db30ee5-e01a-421f-9f60-bb72ffe31add", "1db30ee5-e01a-421f-9f60-bb72ffe31add", stop_losses=[])
+userStoplosses = UserStoplosses(
+    "1db30ee5-e01a-421f-9f60-bb72ffe31add",
+    "1db30ee5-e01a-421f-9f60-bb72ffe31add",
+    stop_losses=[],
+)
 stoploss_repo.update_user_stoplosses(userStoplosses, telemetry, tel_props)
 
-userstoplosses = stoploss_repo.get_user_stoplosses("1db30ee5-e01a-421f-9f60-bb72ffe31add", telemetry, tel_props)
+userstoplosses = stoploss_repo.get_user_stoplosses(
+    "1db30ee5-e01a-421f-9f60-bb72ffe31add", telemetry, tel_props
+)
 
-stoploss = Stoploss("1db30ee5-e01a-421f-9f60-bb72ffe31add", "normal", ticker_name, 1000.0, product_type="CNC", check_at="30t")
-stoploss_repo.store_user_stoplosses("1db30ee5-e01a-421f-9f60-bb72ffe31add", stoploss, telemetry, tel_props)
+stoploss = Stoploss(
+    "1db30ee5-e01a-421f-9f60-bb72ffe31add",
+    "normal",
+    ticker_name,
+    1000.0,
+    product_type="CNC",
+    check_at="30t",
+)
+stoploss_repo.store_user_stoplosses(
+    "1db30ee5-e01a-421f-9f60-bb72ffe31add", stoploss, telemetry, tel_props
+)
 
 all_stoplosses = stoploss_repo.get_all_stoplosses(telemetry, tel_props)
 stoplosses = all_stoplosses[1].stop_losses
@@ -141,7 +161,13 @@ stoplosses = [stoploss]
 fyers_service.set_stop_loss(userstoplosses.stop_losses[0], 1, tel_props)
 fyers_service.set_stop_losses(userstoplosses.stop_losses, tel_props)
 
-fyers_service.place_stoploss_for_buy_market_order(ticker_name=ticker_name, qty=2, stopprice=990, product_type=ProductType.CNC.value, tel_props=tel_props)
+fyers_service.place_stoploss_for_buy_market_order(
+    ticker_name=ticker_name,
+    qty=2,
+    stopprice=990,
+    product_type=ProductType.CNC.value,
+    tel_props=tel_props,
+)
 
 
 # -----------------

@@ -1,19 +1,19 @@
-# import datetime
-# from SharedCode.Repository.KeyVault.keyvault_service import KeyVaultService
-# from SharedCode.Repository.Logger.logger_service import LoggerService
-# from SharedCode.Repository.BlobService.blob_service import BlobService
-# from SharedCode.Utils.constants import Constants
-# from SharedCode.Utils.tikers import Tickers
-# from SharedCode.Repository.Fyers.fyers_service import FyersService
-# import pandas as pd
-# from SharedCode.Utils.constants import Constants
+import datetime
+from SharedCode.Repository.KeyVault.keyvault_service import KeyVaultService
+from SharedCode.Repository.Logger.logger_service import LoggerService
+
+from SharedCode.Repository.BlobService.blob_service import BlobService
+
+from SharedCode.Utils.tikers import Tickers
+
+from SharedCode.Repository.Fyers.fyers_service import FyersService
+import pandas as pd
+from SharedCode.Utils.constants import Constants
 
 
-# kv_service = KeyVaultService()
-# blob_service = BlobService()
-# telemetry = LoggerService()
-def h():
-    print("")
+kv_service = KeyVaultService()
+blob_service = BlobService()
+telemetry = LoggerService()
 
 
 def fetch_store_history_data_runner(tel_props):

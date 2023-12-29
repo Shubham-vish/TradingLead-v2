@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from enum import Enum
-from SharedCode.Models.Fyers.fyers_constants import OrderType, OrderSide, ProductType
+
+
 @dataclass
 class Order:
     symbol: str
