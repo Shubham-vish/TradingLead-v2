@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import json
 from dataclasses import asdict
 from dacite import from_dict
-from enum import StrEnum, Enum
+from enum import  Enum
 from SharedCode.Models.Fyers.fyers_constants import OrderType, OrderSide, ProductType
 
 class Constants:
@@ -18,12 +18,12 @@ class Constants:
     stoplosses = "Stoplosses"
     check_at = "check_at"
 
-class StoplossType(StrEnum):
+class StoplossType(Enum):
     normal = "normal"
     line = "line"
     trend = "trend"
 
-class StoplossCheckAt(StrEnum):
+class StoplossCheckAt(Enum):
     closing = "closing"
     thirty_minute = "thirty_minute"
     hourly = "hourly"
