@@ -39,6 +39,19 @@ class Stoploss:
     trend_start: Optional[str] = None
     trend_end: Optional[str] = None
     check_at: Optional[str] = None
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'type': self.type,
+            'ticker': self.ticker,
+            'price': self.price,
+            'qty': self.qty,
+            'product_type': self.product_type,
+            'trend_start': self.trend_start,
+            'trend_end': self.trend_end,
+            'check_at': self.check_at,
+        }
 
         
 @dataclass
@@ -46,6 +59,13 @@ class UserStoplosses:
     id: str
     user_id: str
     stop_losses: List[Stoploss]
+    
+    
+    def get_stoplosses(self, stoploss_type: StoplossType, check_at: Optional[StoplossCheckAt] = None) -> List[Stoploss]:
+        if check_at:
+            return [stoploss for stoploss in self.stop_losses if stoploss.type == stoploss_type.value and stoploss.check_at == check_at.value]
+        else:
+            return [stoploss for stoploss in self.stop_losses if stoploss.type == stoploss_type.value]
 
     def get_normal_stoplosses(self) -> List[Stoploss]:
         normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.normal.value]
