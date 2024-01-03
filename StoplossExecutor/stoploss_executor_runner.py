@@ -75,8 +75,8 @@ def execute_stoploss_for_user(user_stoplosses:UserStoplosses,  check_at:Stoploss
                 telemetry.info(f"Stoploss trigger checked for user: {user_stoplosses.id} : stoploss: {asdict(stoploss)}", tel_props)
             except Exception as e:
                 telemetry.exception(f"Error occurred while checking stoploss trigger for user: {user_stoplosses.id} : stoploss: {asdict(stoploss)} : {e}", tel_props)
-                raise e
                 exceptions.append((e, asdict(stoploss)))
+                raise e
         telemetry.info(f"Stoploss set successfully for {asdict(user_stoplosses)}", tel_props)
         
         if len(exceptions) > 0:

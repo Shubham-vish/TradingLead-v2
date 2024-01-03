@@ -16,7 +16,7 @@ def main(mytimer: func.TimerRequest, context: func.Context) -> None:
     operation_id = FunctionUtils.get_operation_id(context)
 
     tel_props = {
-        Constants.SERVICE : Constants.market_start_executor_services,
+        Constants.SERVICE : Constants.market_close_executor_services,
         Constants.operation_id : operation_id,
     }
     

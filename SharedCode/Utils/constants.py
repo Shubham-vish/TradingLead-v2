@@ -24,6 +24,7 @@ class Constants:
     fetch_store_participants_data_service = "FetchStoreParticipantsDataService"
     fetch_store_history_data_service = "FetchStoreHistoryDataService"
     market_start_executor_services = "MarketStartExecutorService"
+    market_close_executor_services = "MarketCloseExecutorService"
     order_executor_service = "OrderExecutorService"
     stoploss_executor_service = "StopLossExecutorService"
     # telemetry custom dimensions keys
