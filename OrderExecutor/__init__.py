@@ -4,7 +4,7 @@ from SharedCode.Repository.KeyVault.keyvault_service import KeyVaultService
 from SharedCode.Repository.Logger.logger_service import LoggerService
 from SharedCode.Utils.constants import Constants
 from SharedCode.Utils.utility import FunctionUtils
-from OrderExecutor.order_executor_runner import order_executor_runner
+from SharedCode.Runners.order_executor_runner import order_executor_runner
 import json
 
 telemetry = LoggerService()

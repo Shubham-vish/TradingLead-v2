@@ -4,7 +4,7 @@ import azure.functions as func
 from SharedCode.Repository.Logger.logger_service import LoggerService
 from SharedCode.Utils.constants import Constants
 from SharedCode.Utils.utility import FunctionUtils
-from MarketStartExecutor.market_start_executor_runner import market_start_executer_runner
+from SharedCode.Runners.market_start_executor_runner import market_start_executer_runner
 telemetry = LoggerService()
 
 def main(mytimer: func.TimerRequest, context: func.Context) -> None:

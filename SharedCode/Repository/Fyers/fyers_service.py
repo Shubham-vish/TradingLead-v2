@@ -517,7 +517,7 @@ class FyersService:
         telemetry.exception(msg, tel_props)
         raise Exception(msg)
 
-    def history(self, ticker, range_from, range_to, resolution, tel_props):
+    def history(self, ticker, range_from, range_to, resolution, tel_props)->pd.DataFrame:
         tel_props = tel_props.copy()
         tel_props.update({"action": "history", "ticker": ticker, "range_from": range_from, "range_to": range_to, "resolution": resolution, Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})
         telemetry.info(
@@ -550,6 +550,7 @@ class FyersService:
                 df["datetime"] = df["datetime"].dt.tz_localize("utc").dt.tz_convert("Asia/Kolkata")
                 df["datetime"] = df["datetime"].dt.tz_localize(None)
                 df = df.set_index("datetime")
+                df.drop_duplicates(inplace=True)
                 return df
             else:
                 telemetry.exception(f"Invalid Response: {response}", tel_props)
@@ -558,7 +559,7 @@ class FyersService:
             telemetry.exception(f"Error in fetching history: {e}")
             raise e
 
-    def fetch_deep_history(self, ticker, range_from, range_to, resolution, tel_props):
+    def fetch_deep_history(self, ticker, range_from, range_to, resolution, tel_props)->pd.DataFrame:
         tel_props = tel_props.copy()
         tel_props.update({"action": "fetch_deep_history", "ticker": ticker, "range_from": range_from, "range_to": range_to, "resolution": resolution})
         

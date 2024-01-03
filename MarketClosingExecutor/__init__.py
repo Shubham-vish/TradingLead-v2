@@ -4,7 +4,7 @@ import azure.functions as func
 from SharedCode.Repository.Logger.logger_service import LoggerService
 from SharedCode.Utils.constants import Constants
 from SharedCode.Utils.utility import FunctionUtils
-from MarketClosingExecutor.market_closing_executor_runner import market_closing_executor_runner
+from SharedCode.Runners.market_closing_executor_runner import market_closing_executor_runner
 telemetry = LoggerService()
 
 

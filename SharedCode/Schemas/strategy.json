@@ -1,0 +1,36 @@
+{
+  "id": "9e82df6c-ff78-4ab2-9e01-ea2fab1f0ea9",
+  "strategy_name": "KernelRegressionStrategy",
+  "strategy_details": {
+    "time_frame": "30T",
+    "model": "KernelRegression",
+    "params": ""
+  },
+  "users": [
+    {
+      "user_id": "9e82df6c-ff78-4ab2-9e01-ea2fab1f0ea9",
+      "name": "user1",
+      "email": "",
+      "kv_secret_name": "",
+      "fyers_user_name": "",
+      "quantity": 1,
+      "ticker": "NIFTY",
+      "product_type": "margin"
+    },
+    {
+      "user_id": "8e82d06c-ff78-4ab2-9e01-ea2fab1f0ea9",
+      "name": "user2",
+      "email": "",
+      "kv_secret_name": "",
+      "fyers_user_name": "",
+      "quantity": 1,
+      "ticker": "NIFTY",
+      "product_type": "margin"
+    }
+  ],
+  "_rid": "11AcAOO9stYBAAAAAAAAAA==",
+  "_self": "dbs/11AcAA==/colls/11AcAOO9stY=/docs/11AcAOO9stYBAAAAAAAAAA==/",
+  "_etag": "\"01000d31-0000-2000-0000-659587780000\"",
+  "_attachments": "attachments/",
+  "_ts": 1704298360
+}

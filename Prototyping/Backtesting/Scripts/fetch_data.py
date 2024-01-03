@@ -47,7 +47,7 @@ for ticker in tickers:
     sd = date(2017, 7, 3)
     enddate = datetime.now().date()
 
-    fyerService.fetch_deep_history(ticker, sd, enddate, resolution="1", tel_props=tel_props)
+    df = fyerService.fetch_deep_history(ticker, sd, enddate, resolution="1", tel_props=tel_props)
     ticker = ticker.replace(":", "_")
     # location = f"../Data/Nifty50/{ticker}.csv"
     # df.to_csv(rf"{location}")

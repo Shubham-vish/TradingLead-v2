@@ -9,30 +9,30 @@ class LoggerService:
 
     def info(self, message, properties=None):
         extra_properties = self._combine_properties(properties)
-        # print(message)
-        self.logger.info(message, extra=extra_properties)
+        print(message)
+        # self.logger.info(message, extra=extra_properties)
         
     def event(self, message, properties=None):
         extra_properties = self._combine_properties(properties)
-        # print(message)
-        self.event_logger.info(message, extra=extra_properties)
+        print(message)
+        # self.event_logger.info(message, extra=extra_properties)
 
     def warning(self, message, properties=None):
         extra_properties = self._combine_properties(properties)
-        # print(message)
-        self.logger.warning(message, extra=extra_properties)
+        print(message)
+        # self.logger.warning(message, extra=extra_properties)
 
 
 
     def error(self, message, properties=None):
         extra_properties = self._combine_properties(properties)
-        # print(message)
-        self.logger.error(message, extra=extra_properties)
+        print(message)
+        # self.logger.error(message, extra=extra_properties)
     
     def exception(self, message, properties=None):
         extra_properties = self._combine_properties(properties)
-        # print(message)
-        self.logger.exception(message, extra=extra_properties)
+        print(message)
+        # self.logger.exception(message, extra=extra_properties)
 
     def _combine_properties(self, properties):
         combined_properties = {**self.global_properties, **(properties or {})}

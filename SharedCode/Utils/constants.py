@@ -20,13 +20,13 @@ class Constants:
     holdings_service = "HoldingsService"
     user_service = "UsersService"
     access_token_generator_service = "AccessTokenGeneratorService"
-    strategy_executor_service = "StrategyExecutorService"
     fetch_store_participants_data_service = "FetchStoreParticipantsDataService"
     fetch_store_history_data_service = "FetchStoreHistoryDataService"
     market_start_executor_services = "MarketStartExecutorService"
     market_close_executor_services = "MarketCloseExecutorService"
     order_executor_service = "OrderExecutorService"
     stoploss_executor_service = "StopLossExecutorService"
+    strategy_executor_service = "StrategyExecutorService"
     # telemetry custom dimensions keys
     username = "username"
     contact_number = "contact_number"
@@ -52,6 +52,7 @@ class Constants:
     PARTICIPANTS_DATA_CONTAINER = "CosmosParticipantsDataContainer"
     ALERTS_CONTAINER_NAME = "CosmosAlertsContainer"
     STOPLOSS_CONTAINER_NAME = "StoplossContainerName"
+    STRATEGY_CONTAINER_NAME = "StrategyContainerName"
     USERS_CONTAINER_NAME = "UsersContainerName"
     DATABASE_ID = "CosmosDbDatabaseId"
 

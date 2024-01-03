@@ -25,7 +25,7 @@ class BlobService:
             download_stream = blob_client.download_blob()
             sample_blob.write(download_stream.readall())
 
-    def get_ticker_df(self, container_name, blob_name):
+    def get_ticker_df(self, container_name, blob_name)->pd.DataFrame:
         blob_client = self.get_blob_client(container_name, blob_name)
         download_stream = blob_client.download_blob()
         txt = download_stream.content_as_text()
@@ -33,12 +33,12 @@ class BlobService:
         df = pd.read_csv(txt_io, index_col="datetime", parse_dates=["datetime"])
         return df
 
-    def get_ticker_history(self, ticker):
+    def get_ticker_history(self, ticker)->pd.DataFrame:
         ticker = FunctionUtils.get_storage_ticker(ticker)
         blob_name = f"{Constants.DIR_NIFTY_50}/{ticker}.csv"
         return self.get_ticker_df(Constants.STOCK_HISTORY_CONTAINER, blob_name)
 
-    def create_blob(self, df, container_name, blob_name):
+    def create_blob(self, df:pd.DataFrame, container_name, blob_name):
         """
         Creates a blob in the specified container with the given name from a DataFrame.
 

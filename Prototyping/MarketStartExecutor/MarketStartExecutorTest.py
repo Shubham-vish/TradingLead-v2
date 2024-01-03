@@ -25,7 +25,7 @@ from SharedCode.Repository.Fyers.fyers_service import FyersService
 from SharedCode.Models.Order.order_message import OrderMessage, OrderConstants
 from SharedCode.Repository.ServiceBus.servicebus_service import ServiceBusService
 from dataclasses import asdict
-from MarketStartExecutor.market_start_executor_runner import market_start_executer_runner
+from SharedCode.Runners.market_start_executor_runner import market_start_executer_runner
 
 kv_service = KeyVaultService()
 telemetry = LoggerService()

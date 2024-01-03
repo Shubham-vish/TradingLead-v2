@@ -29,7 +29,7 @@ class FunctionUtils:
         return ticker.replace(":", "_")
 
     @staticmethod
-    def filter_last_n_days(df, n=20):
+    def filter_last_n_days(df: pd.DataFrame, n=20) -> pd.DataFrame:
         """
         Filters the DataFrame to include only the last N days of data.
 
@@ -43,7 +43,7 @@ class FunctionUtils:
         return df[df.index >= df.index.max() - pd.Timedelta(days=n)]
 
     @staticmethod
-    def resample_to_timeframe(df, frequency="30T"):
+    def resample_to_timeframe(df:pd.DataFrame, frequency="30T") -> pd.DataFrame:
         if not isinstance(df.index, pd.DatetimeIndex):
             raise ValueError("DataFrame index must be a DatetimeIndex.")
 
@@ -83,7 +83,7 @@ class FunctionUtils:
     #     utils.resample_to_timeframe(fdf, "1H"),
     # )
     @staticmethod
-    def are_dataframes_identical(df1, df2):
+    def are_dataframes_identical(df1: pd.DataFrame, df2: pd.DataFrame):
         """
         Compares two DataFrames to determine if they are identical.
 

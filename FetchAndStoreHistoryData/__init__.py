@@ -3,7 +3,7 @@ import azure.functions as func
 from SharedCode.Repository.Logger.logger_service import LoggerService
 from SharedCode.Utils.constants import Constants
 from SharedCode.Utils.utility import FunctionUtils
-from .fetch_store_stock_history_data_runner import fetch_store_history_data_runner
+from ..SharedCode.Runners.fetch_store_stock_history_data_runner import fetch_store_history_data_runner
 telemetry = LoggerService()
 
 

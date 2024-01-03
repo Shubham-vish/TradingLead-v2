@@ -58,7 +58,7 @@ tel_props = {
     Constants.SERVICE: Constants.access_token_generator_service,
     Constants.operation_id: operation_id,
 }
-from StoplossExecutor.stoploss_executor_runner import stoploss_executor_runner
+from SharedCode.Runners.stoploss_executor_runner import stoploss_executor_runner
 from SharedCode.Models.Order.user_stoplosses import StoplossCheckAt
 stoploss_repo = StoplossesRepository()
 check_at = StoplossCheckAt.thirty_minute

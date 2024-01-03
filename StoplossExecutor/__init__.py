@@ -9,7 +9,7 @@ from SharedCode.Repository.Logger.logger_service import LoggerService
 from SharedCode.Utils.constants import Constants
 from SharedCode.Utils.utility import FunctionUtils
 from SharedCode.Models.Order.user_stoplosses import UserStoplosses, StoplossCheckAt
-from .stoploss_executor_runner import stoploss_executor_runner
+from ..SharedCode.Runners.stoploss_executor_runner import stoploss_executor_runner
 
 
 telemetry = LoggerService()

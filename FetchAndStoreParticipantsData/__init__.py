@@ -1,6 +1,6 @@
 import datetime
 import azure.functions as func
-from FetchAndStoreParticipantsData.fetch_store_participants_data_runner import fetch_store_data_for_n_days
+from SharedCode.Runners.fetch_store_participants_data_runner import fetch_store_data_for_n_days
 from SharedCode.Utils.constants import Constants
 from SharedCode.Utils.utility import FunctionUtils
 from SharedCode.Repository.Logger.logger_service import LoggerService

@@ -1,0 +1,9 @@
+{
+  "SCHEDULE_CRON_FOR_ACCESS_TOKEN_GENERATOR": "0 0 */3 * * *", // Runs every 3 hours, on the hour UTC (e.g., 5:30 AM, 8:30 AM, 11:30 AM, etc., IST)
+  "SCHEDULE_CRON_FOR_PARTICIPATION_DATA_STORE": "0 0 12-17 * * *", // Runs daily at every hour from 5:30 PM to 10:30 PM IST
+  "STOPLOSS_CRON_FOR_30_MINUTES": "0 10,40 4-9 * * *", // Runs daily at 9:40 AM, 10:10 AM, and every 30 minutes until 3:10 PM IST
+  "STRATEGY_EXECUTOR_CRON": "0 10,40 4-9 * * *", // Runs daily at 9:40 AM, 10:10 AM, and every 30 minutes until 3:10 PM IST
+  "SCHEDULE_CRON_FOR_MARKET_START_EXECUTOR": "0 46 3 * * *", // Runs daily at 9:16 AM IST
+  "STOPLOSS_CRON_FOR_CLOSING": "0 50 9 * * *", // Runs daily at 3:20 PM IST
+  "SCHEDULE_CRON_FOR_STOCK_HISTORY_DATA_STORE": "0 30 10 * * *" // Runs daily at 4:00 PM IST
+}

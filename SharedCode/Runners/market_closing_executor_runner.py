@@ -1,5 +1,5 @@
 from SharedCode.Models.Order.user_stoplosses import StoplossCheckAt
-from StoplossExecutor.stoploss_executor_runner import stoploss_executor_runner
+from SharedCode.Runners.stoploss_executor_runner import stoploss_executor_runner
 from SharedCode.Repository.Logger.logger_service import LoggerService
 
 telemetry = LoggerService()
