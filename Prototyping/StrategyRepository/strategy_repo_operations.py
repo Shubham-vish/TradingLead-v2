@@ -50,8 +50,9 @@ user = user_repo.get_user("1db30ee5-e01a-421f-9f60-bb72ffe31add", telemetry, tel
 strategy_name = strategy.strategy_name
 ticker = "NSE:NIFTY50-INDEX"
 quantity = 50
+curr_quantity = 0
 product_type = "MARGIN"
-strategy_user = StrategyUser.from_user(user=user, ticker= ticker,trade_ticker= ticker,quantity= quantity, product_type=product_type)
+strategy_user = StrategyUser.from_user(user=user, ticker= ticker,trade_ticker= ticker,quantity= quantity, curr_quantity= curr_quantity, product_type=product_type)
 
 strategy_repo.add_user_to_strategy(strategy_name, strategy_user, telemetry, tel_props)
 
@@ -59,6 +60,6 @@ strategy_repo.add_user_to_strategy(strategy_name, strategy_user, telemetry, tel_
 ticker = "NSE:ADANIPORTS-EQ"
 product_type = "CNC"
 quantity = 10
-strategy_user = StrategyUser.from_user(user=user, ticker= ticker,trade_ticker= ticker,quantity= quantity, product_type=product_type)
+strategy_user = StrategyUser.from_user(user=user, ticker= ticker,trade_ticker= ticker,quantity= quantity, curr_quantity= curr_quantity,, product_type=product_type)
 strategy_repo.add_user_to_strategy(strategy_name, strategy_user, telemetry, tel_props)
 

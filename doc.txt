@@ -47,7 +47,15 @@ StrategyExecutor - Runs daily at 9:40 AM, 10:10 AM, and every 30 minutes until 3
     --> gets strategy from strategy_repo with name "KernelRegressionStrategy",
     --> processes strategy for each user parallely(quant, ticker, trade_ticker, product_type)
         ---> process_strategy_user(strategy_user:StrategyUser, strategy:Strategy)
-              ----> gets history for the ticker and gets signal (buy/sell) and send signal message
+              ----> gets history for the ticker 
+                    calculates the signal buy/sell and calls process_signal
+                    -----> process_signal(strategy_user, buy_signal, ltp)
+                           ---> creates a signal_message
+                                if signal need to be sent to_do_something, (if in trade and sell, if not in trade and buy)
+                                    sends message to signal_topic_name
+                                    This message is then processed by StrategyProcessor
+                                else do nothing
+
                     sends signal_message(strategy_user, buy_signal, ltp)
                       -----> creates signal_message from strategy_user, buy_signal, strategy_name
                               sends the message to signal_topic_name
@@ -56,10 +64,18 @@ StrategyExecutor - Runs daily at 9:40 AM, 10:10 AM, and every 30 minutes until 3
 
 StrategyProcessor - Runs for each signal_message(contains user details, ticker, quant and strategy details)
     -> Calls strategy_processor_runner(signal_message)
-        -> processes the message
-          if signal is true
-          elif signal is false
-          else not supported
+        -> processes the message (Todo: Need to add proper logic)
+            if signal_message.to_do_something()
+              
+                if signal_message.to_buy()
+                    fyers_service.place_buy_market(strategy_user.trade_ticker, strategy_user.quantity, strategy_user.product_type, tel_props)
+                
+                elif signal_message.to_sell()
+                    fyers_service.place_sell_market(strategy_user.trade_ticker, strategy_user.curr_quantity, strategy_user.product_type, tel_props)
+              strategy_repo.update_curr_quantity_in_strategy(strategy_name, strategy_user, telemetry, tel_props)
+            
+            else:
+                not supported
 
 --------------------------------------------------------------------
 --

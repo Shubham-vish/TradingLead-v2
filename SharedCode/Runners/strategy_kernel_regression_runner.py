@@ -26,19 +26,33 @@ strategy_name = "KernelRegressionStrategy"
 signal_topic_name = "signal-topic"
 
 
-def send_signal_message(strategy_user:StrategyUser, buy_signal:bool, ltp:float,  tel_props):
+def process_signal(strategy_user:StrategyUser, buy_signal:bool, ltp:float,  tel_props):
     tel_props = tel_props.copy()
-    telemetry.info(f"Sending signal message for user, ticker: {strategy_user.user_id}, {strategy_user.ticker} with signal: {buy_signal}", tel_props)
-    signal_message = SignalMessage.from_strategy_user(strategy_user, strategy_name, buy_signal, ltp)
-    sb_service.send_to_topic(json.dumps(asdict(signal_message)), signal_topic_name)
+    tel_props.update({"action": "process_signal", "buy_signal": buy_signal, "ltp": ltp})
     
-    tel_props.update({"signal_message": asdict(signal_message)})
-    telemetry.info(f"Signal message sent for user, ticker: {strategy_user.user_id}, {strategy_user.ticker} with signal: {buy_signal}, ltp: {ltp}", tel_props)
+    
+    telemetry.info(f"process_signal started for user, ticker: {strategy_user.user_id}, {strategy_user.ticker} with signal: {buy_signal}, ltp: {ltp}", tel_props)
+    
+    signal_message = SignalMessage.from_strategy_user(strategy_user, strategy_name, buy_signal, ltp)
+    signal_message_json = json.dumps(asdict(signal_message))
+    
+    tel_props.update({"signal_message": signal_message_json})
+    telemetry.info(f"signal_message_json: {signal_message_json}", tel_props)
+    
+    if signal_message.to_do_something():
+        telemetry.info(f"Sending signal for user, ticker: {strategy_user.user_id}, {strategy_user.ticker} with signal: {buy_signal}, ltp: {ltp}", tel_props)
+        sb_service.send_to_topic(signal_message_json, signal_topic_name)
+    else:
+        telemetry.info(f"Nothing to do for user, ticker: {strategy_user.user_id}, {strategy_user.ticker} with signal: {buy_signal}, ltp: {ltp}", tel_props)
+    
+    telemetry.info(f"process_signal completed for user, ticker: {strategy_user.user_id}, {strategy_user.ticker} with signal: {buy_signal}, ltp: {ltp}", tel_props)
+    
+   
 
 def process_strategy_user(strategy_user:StrategyUser, strategy:Strategy, tel_props):
     
     tel_props = tel_props.copy()
-    tel_props.update({"action": "process_strategy_user", "strategy_user": json.dumps(asdict(strategy_user))})
+    tel_props.update({"action": "process_strategy_user" ,"strategy_user": json.dumps(asdict(strategy_user))})
     
     time_delta_in_days = strategy.strategy_details["time_delta_in_days"]
     resolution = strategy.strategy_details["resolution"]
@@ -67,12 +81,12 @@ def process_strategy_user(strategy_user:StrategyUser, strategy:Strategy, tel_pro
 
     ltp = df['close'].iloc[0]
     
-    send_signal_message(strategy_user, buy_signal, ltp, tel_props)
+    process_signal(strategy_user, buy_signal, ltp, tel_props)
 
 
 def strategy_kernel_regression_runner(tel_props):
     tel_props = tel_props.copy()
-    tel_props.update({"action": "strategy_kernel_regression_runner"})    
+    tel_props.update({"action": "strategy_kernel_regression_runner", "strategy":strategy_name})    
     telemetry.info(f"strategy_kernel_regression_runner started", tel_props)
     strategy = strategy_repo.get_strategy(strategy_name, telemetry, tel_props)
     
