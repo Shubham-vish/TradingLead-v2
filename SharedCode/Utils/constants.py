@@ -25,6 +25,7 @@ class Constants:
     market_start_executor_services = "MarketStartExecutorService"
     market_close_executor_services = "MarketCloseExecutorService"
     order_executor_service = "OrderExecutorService"
+    plot_chart_service = "PlotChartService"
     stoploss_executor_service = "StopLossExecutorService"
     strategy_executor_service = "StrategyExecutorService"
     strategy_processor_service = "StrategyProcessorService"

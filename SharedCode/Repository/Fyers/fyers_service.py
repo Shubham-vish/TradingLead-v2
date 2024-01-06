@@ -52,7 +52,7 @@ class FyersService:
                 "action": "place_order",
             }
         )
-        
+        exception = None
         for attempt in range(3):
             try:
                 data = {
@@ -77,68 +77,17 @@ class FyersService:
                     return response
                 else:
                     msg = f"Invalid Response while placing {side_str} market:{data} response:{response}"
-                    telemetry.exception(msg, tel_props)
+                    telemetry.exception_retriable(msg, tel_props)
                     raise Exception(msg)
             except Exception as e:
-                telemetry.exception(f"Error in placing {side_str} market, attempt: {attempt}, error: {e}", tel_props)
+                telemetry.exception_retriable(f"Error in placing {side_str} market, attempt: {attempt}, error: {e}", tel_props)
+                exception = e
                 continue
-        msg = f"Max retries in placing {side_str} market, error"
+        msg = f"Max retries in placing {side_str} market, error: {exception}"
         telemetry.exception(msg, tel_props)
         raise Exception(msg)
     
-    def place_buy_market(
-        self, ticker_name: str, qty: int, product_type: str, tel_props
-    ):
-        """
-        # Able to place buy order in CNC
-        # ticker_name = "NSE:LEMONTREE-EQ"
-        # qty = 1
-        # productType = "CNC"
-        # fyers_service.place_buy_market(ticker_name, qty, productType, tel_props)
-
-
-        # # Able to place buy order in Margin Nifty Fut Order for 1 lot
-
-        # ticker_name = "NSE:NIFTY24JANFUT"
-        # qty = 50
-        # productType = "MARGIN"
-        # fyers_service.place_buy_market(ticker_name, qty, productType, tel_props)
-        """
-
-        tel_props = tel_props.copy()
-        tel_props.update(
-            {
-                "ticker_name": ticker_name,
-                "qty": qty,
-                "product_type": product_type,
-                "order_type": "market",
-                "side": "buy",
-                "action": "place_buy_market_order",
-                Constants.fyers_user_name: self.fyers_username,
-                Constants.client_id: self.client_id,
-            }
-        )
-        
-        return self.place_order(ticker_name, qty, product_type, OrderSide.buy.value, tel_props)
     
-    def place_sell_market(
-        self, ticker_name: str, qty: int, product_type: str, tel_props
-    ):
-        tel_props = tel_props.copy()
-        tel_props.update(
-            {
-                "ticker_name": ticker_name,
-                "qty": qty,
-                "product_type": product_type,
-                "order_type": "market",
-                "side": "sell",
-                "action": "place_sell_market_order",
-                Constants.fyers_user_name: self.fyers_username,
-                Constants.client_id: self.client_id,
-            }
-        )
-        
-        return self.place_order(ticker_name, qty, product_type, OrderSide.sell.value, tel_props)
     
     def place_stoploss_for_buy_market_order(
         self,
@@ -148,24 +97,6 @@ class FyersService:
         product_type: str,
         tel_props,
     ):
-        # For CNC it will not place order for the quantity more than positions plus holding
-        """_summary_
-        # Able to set stoploss for Nifty future buy position, Once the stopprice is reached the order gets executed
-        # but if position is buy position is not there it will create a nakes sell position
-
-
-        ticker_name = "NSE:NIFTY24JANFUT"
-        qty = 50
-        productType = "MARGIN"
-        fyers_service.execute_stop_loss_for_buy_market(ticker_name, qty, 21400, productType, tel_props)
-
-        ticker_name = "NSE:LEMONTREE-EQ"
-        qty = 1
-        productType = "CNC"
-        # Able to set stoploss for buy CNC order, once the stopprice is reached the order gets executed
-        # This doesnt get executed when there is no holding or active position for given quantity
-        fyers_service.execute_stop_loss_for_buy_market(ticker_name, qty, 121.7, productType, tel_props)
-        """
         tel_props = tel_props.copy()
         tel_props.update(
             {
@@ -180,7 +111,7 @@ class FyersService:
             }
         )
 
-        exception = ""
+        exception = None
         for attempt in range(3):
             try:
                 data = {
@@ -208,10 +139,10 @@ class FyersService:
                     return respnose
                 else:
                     msg = f"Invalid Response while placing stoploss:{data} response:{respnose}"
-                    telemetry.exception(msg, tel_props)
+                    telemetry.exception_retriable(msg, tel_props)
                     raise Exception(msg)
             except Exception as e:
-                telemetry.exception(f"Error in placing stoploss, attempt: {attempt}, data: {data}, error : {e}", tel_props)
+                telemetry.exception_retriable(f"Error in placing stoploss, attempt: {attempt}, data: {data}, error : {e}", tel_props)
                 exception = e
                 continue
         msg = f"Max retries in placing stoploss, data: {data}, error, {exception}"
@@ -223,8 +154,7 @@ class FyersService:
         tel_props = tel_props.copy()
         tel_props.update({"position_ids": position_ids, Constants.fyers_user_name: self.fyers_username,
                 Constants.client_id: self.client_id})
-    
-        
+        exception = None
         for attempt in range(3):
             try:
                 if not position_ids:
@@ -241,12 +171,13 @@ class FyersService:
                     return response
                 else:
                     msg = f"Invalid Response while exiting positions:{data} response:{response}"
-                    telemetry.exception(msg, tel_props)
+                    telemetry.exception_retriable(msg, tel_props)
                     raise Exception(msg)
             except Exception as e:
-                telemetry.exception(f"Error in exiting positions, attempt: {attempt}, error: {e}", tel_props)
+                telemetry.exception_retriable(f"Error in exiting positions, attempt: {attempt}, error: {e}", tel_props)
+                exception = e
                 continue
-        msg = f"Max retries in exiting positions. Error in exiting positions"
+        msg = f"Max retries in exiting positions. Error in exiting positions, error: {exception}"
         telemetry.exception(msg, tel_props)
         raise Exception(msg)
 
@@ -260,7 +191,7 @@ class FyersService:
                 Constants.client_id: self.client_id,
                 } 
             )
-        
+        exception = None
         for attempt in range(3):
             try:
                 data = {}
@@ -271,12 +202,13 @@ class FyersService:
                     return response
                 else :
                     msg = f"Invalid Response while exiting all positions: {response}"
-                    telemetry.exception(msg, tel_props)
+                    telemetry.exception_retriable(msg, tel_props)
                     raise Exception(msg)
             except Exception as e:
-                telemetry.exception(f"Error in exiting all positions, attempt: {attempt}, error: {e}", tel_props)
+                telemetry.exception_retriable(f"Error in exiting all positions, attempt: {attempt}, error: {e}", tel_props)
+                exception = e
                 continue
-        msg = f"Max retries in exiting all positions. Error in exiting all positions"
+        msg = f"Max retries in exiting all positions. Error in exiting all positions, error: { exception}"
         telemetry.exception(msg, tel_props)
         raise Exception(msg)
     
@@ -312,6 +244,7 @@ class FyersService:
         tel_props.update({"action": "get_holdings", Constants.fyers_user_name: self.fyers_username,
                 Constants.client_id: self.client_id,})
         
+        exception = None
         for attempt in range(3):
             try:
                 res = self.fyers_client.holdings()
@@ -322,12 +255,13 @@ class FyersService:
                     return response
                 else:
                     msg = f"Invalid Response while fetchig holdings: {res}"
-                    telemetry.exception(msg, tel_props)
+                    telemetry.exception_retriable(msg, tel_props)
                     raise Exception(msg)
             except Exception as e:
-                telemetry.exception(f"Error in getting holdings, attempt: {attempt}, error: {e}", tel_props)
+                telemetry.exception_retriable(f"Error in getting holdings, attempt: {attempt}, error: {e}", tel_props)
+                exception = e
                 continue
-        msg = f"Max retries in getting holdings. Error in getting holdings"
+        msg = f"Max retries in getting holdings. Error in getting holdings, error: {exception}"
         telemetry.exception(msg, tel_props)
         raise Exception(msg)
     
@@ -336,7 +270,7 @@ class FyersService:
         tel_props = tel_props.copy()
         tel_props.update({"action": "get_order_book", Constants.fyers_user_name: self.fyers_username,
                 Constants.client_id: self.client_id,})
-        
+        exception = None
         for attempt in range(3):
             try:
                 res = self.fyers_client.orderbook()
@@ -347,12 +281,13 @@ class FyersService:
                     return response
                 else:
                     msg = f"Invalid Response while getting orderbook: {res}"
-                    telemetry.exception(msg, tel_props)
+                    telemetry.exception_retriable(msg, tel_props)
                     raise Exception(msg)
             except Exception as e:
-                telemetry.exception(f"Error in getting Order Book, attempt: {attempt}, error: {e}", tel_props)
+                telemetry.exception_retriable(f"Error in getting Order Book, attempt: {attempt}, error: {e}", tel_props)
+                exception = e
                 continue
-        msg = f"Max retries in getting Order Book. Error in getting Order Book"
+        msg = f"Max retries in getting Order Book. Error in getting Order Book, error: {exception}"
         telemetry.exception(msg, tel_props)
         raise Exception(msg)
     
@@ -361,7 +296,7 @@ class FyersService:
         tel_props.update({"action": "cancel_orders", "order_ids": order_ids, Constants.fyers_user_name: self.fyers_username,
                 Constants.client_id: self.client_id})
         
-        
+        exception = None
         for attempt in range(3):
             try:
                 if not order_ids:
@@ -379,15 +314,122 @@ class FyersService:
                     return response
                 else:
                     msg = f"Invalid Response while cancelling orders:{data} response:{response}"
-                    telemetry.exception(msg, tel_props)
+                    telemetry.exception_retriable(msg, tel_props)
                     raise Exception(msg)
             except Exception as e:
-                telemetry.exception(f"Error in cancelling orders, attempt {attempt}, error: {e}", tel_props)
+                telemetry.exception_retriable(f"Error in cancelling orders, attempt {attempt}, error: {e}", tel_props)
+                exception = e
                 continue
-        msg = f"Max retries in cancelling orders. Error in cancelling orders"
+        msg = f"Max retries in cancelling orders. Error in cancelling orders, error: {exception}"
         telemetry.exception(msg, tel_props)
         raise Exception(msg)
     
+    def get_quote(self, quote_req, tel_props)-> QuoteResponse:
+        tel_props = tel_props.copy()
+        tel_props.update({"action": "get_quote", "quote_req": quote_req, Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})
+        
+        telemetry.info(f"Fetching quote for {quote_req}", tel_props)
+        exception = None
+        for attempt in range(3):
+            try:
+                response = self.fyers_client.quotes(quote_req)
+                
+                telemetry.info(f"Fetched quote response for {quote_req}: {response}", tel_props)
+                quote_res = from_dict(data_class=QuoteResponse, data=response)
+                return quote_res
+            except Exception as e:
+                telemetry.exception_retriable(f"Error in fetching quote attempt: {attempt} for {quote_req}: {e}", tel_props)
+                exception = e
+                continue
+        msg = f"Max retries in fetching quote for {quote_req}. Error in fetching quote, error: {exception}"
+        telemetry.exception(msg, tel_props)
+        raise Exception(msg)
+
+    def history(self, ticker, range_from, range_to, resolution, tel_props)->pd.DataFrame:
+        tel_props = tel_props.copy()
+        tel_props.update({"action": "history", "ticker": ticker, "range_from": range_from, "range_to": range_to, "resolution": resolution, Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})
+        telemetry.info(
+            f"Fetching history for {ticker} from {range_from} to {range_to} with resolution {resolution}"
+        )
+
+        """_summary_
+            # "range_from":"2023-10-10",
+            # "range_to":"2023-12-30",
+        """
+        exception = None
+        for attempt in range(3):
+            try:
+                data = {
+                    "symbol": ticker,
+                    "resolution": resolution,
+                    "date_format": "1",
+                    "range_from": range_from,
+                    "range_to": range_to,
+                    "cont_flag": "1",
+                }
+                response = self.fyers_client.history(data)
+                
+                if response["s"] == Response.OK:
+                    telemetry.info(f"Fetched history response OK for {data}")
+                    
+                    cols = ["datetime", "open", "high", "low", "close", "volume"]
+                    df = pd.DataFrame.from_dict(response["candles"])
+                    df.columns = cols
+                    df["datetime"] = pd.to_datetime(df["datetime"], unit="s")
+                    df["datetime"] = df["datetime"].dt.tz_localize("utc").dt.tz_convert("Asia/Kolkata")
+                    df["datetime"] = df["datetime"].dt.tz_localize(None)
+                    df = df.set_index("datetime")
+                    df.drop_duplicates(inplace=True)
+                    return df
+                else:
+                    telemetry.exception_retriable(f"Invalid Response attempt {attempt}, res : {response}", tel_props)
+                return response
+            except Exception as e:
+                telemetry.exception_retriable(f"Error in fetching history, attempt: {attempt}, error: {e}")
+                exception = e
+                continue
+        msg = f"Max retries in fetching history. Error in fetching history, error: {exception}"
+        telemetry.exception(msg, tel_props)
+        raise Exception(msg)
+    
+    
+    def place_buy_market(
+        self, ticker_name: str, qty: int, product_type: str, tel_props
+    ):
+        tel_props = tel_props.copy()
+        tel_props.update(
+            {
+                "ticker_name": ticker_name,
+                "qty": qty,
+                "product_type": product_type,
+                "order_type": "market",
+                "side": "buy",
+                "action": "place_buy_market_order",
+                Constants.fyers_user_name: self.fyers_username,
+                Constants.client_id: self.client_id,
+            }
+        )
+        
+        return self.place_order(ticker_name, qty, product_type, OrderSide.buy.value, tel_props)
+    
+    def place_sell_market(
+        self, ticker_name: str, qty: int, product_type: str, tel_props
+    ):
+        tel_props = tel_props.copy()
+        tel_props.update(
+            {
+                "ticker_name": ticker_name,
+                "qty": qty,
+                "product_type": product_type,
+                "order_type": "market",
+                "side": "sell",
+                "action": "place_sell_market_order",
+                Constants.fyers_user_name: self.fyers_username,
+                Constants.client_id: self.client_id,
+            }
+        )
+        
+        return self.place_order(ticker_name, qty, product_type, OrderSide.sell.value, tel_props)
         
     def set_stop_loss(self, stoploss: Stoploss, qty, tel_props):
         tel_props = tel_props.copy()
@@ -479,71 +521,6 @@ class FyersService:
             
             telemetry.info(f"Qty for {order.symbol}: {order.quantity}", tel_props)
            
-    # Apis to get History data
-    # No retries implemented as of now
-    # 
-    
-    def get_quote(self, quote_req, tel_props)-> QuoteResponse:
-        tel_props = tel_props.copy()
-        tel_props.update({"action": "get_quote", "quote_req": quote_req, Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})
-        
-        telemetry.info(f"Fetching quote for {quote_req}", tel_props)
-        for attempt in range(3):
-            try:
-                response = self.fyers_client.quotes(quote_req)
-                
-                telemetry.info(f"Fetched quote response for {quote_req}: {response}", tel_props)
-                quote_res = from_dict(data_class=QuoteResponse, data=response)
-                return quote_res
-            except Exception as e:
-                telemetry.exception(f"Error in fetching quote attempt: {attempt} for {quote_req}: {e}", tel_props)
-                continue
-        msg = f"Max retries in fetching quote for {quote_req}. Error in fetching quote"
-        telemetry.exception(msg, tel_props)
-        raise Exception(msg)
-
-    def history(self, ticker, range_from, range_to, resolution, tel_props)->pd.DataFrame:
-        tel_props = tel_props.copy()
-        tel_props.update({"action": "history", "ticker": ticker, "range_from": range_from, "range_to": range_to, "resolution": resolution, Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})
-        telemetry.info(
-            f"Fetching history for {ticker} from {range_from} to {range_to} with resolution {resolution}"
-        )
-
-        """_summary_
-            # "range_from":"2023-10-10",
-            # "range_to":"2023-12-30",
-        """
-
-        try:
-            data = {
-                "symbol": ticker,
-                "resolution": resolution,
-                "date_format": "1",
-                "range_from": range_from,
-                "range_to": range_to,
-                "cont_flag": "1",
-            }
-            response = self.fyers_client.history(data)
-            
-            if response["s"] == Response.OK:
-                telemetry.info(f"Fetched history response OK for {data}")
-                
-                cols = ["datetime", "open", "high", "low", "close", "volume"]
-                df = pd.DataFrame.from_dict(response["candles"])
-                df.columns = cols
-                df["datetime"] = pd.to_datetime(df["datetime"], unit="s")
-                df["datetime"] = df["datetime"].dt.tz_localize("utc").dt.tz_convert("Asia/Kolkata")
-                df["datetime"] = df["datetime"].dt.tz_localize(None)
-                df = df.set_index("datetime")
-                df.drop_duplicates(inplace=True)
-                return df
-            else:
-                telemetry.exception(f"Invalid Response: {response}", tel_props)
-            return response
-        except Exception as e:
-            telemetry.exception(f"Error in fetching history: {e}")
-            raise e
-
     def fetch_deep_history(self, ticker, range_from, range_to, resolution, tel_props)->pd.DataFrame:
         tel_props = tel_props.copy()
         tel_props.update({"action": "fetch_deep_history", "ticker": ticker, "range_from": range_from, "range_to": range_to, "resolution": resolution})

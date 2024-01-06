@@ -20,8 +20,8 @@ class StrategyUser:
     
     
     @staticmethod
-    def from_user(user: User, ticker: str, trade_ticker:str, quantity: int, curr_quantity:int, product_type: str)->'StrategyUser':
-        return StrategyUser(user.id, user.name, user.email, user.kv_secret_name, user.fyers_user_name, quantity, ticker, trade_ticker, product_type)
+    def from_user(user: User, ticker: str, trade_ticker:str, quantity: int, curr_quantity:int, product_type: str, strategy_name:str)->'StrategyUser':
+        return StrategyUser(user_id= user.id, name = user.name,email= user.email,kv_secret_name= user.kv_secret_name, fyers_user_name= user.fyers_user_name,quantity= quantity, curr_quantity=curr_quantity, ticker = ticker, trade_ticker= trade_ticker, product_type=product_type)
         
 
     def is_in_trade(self):

@@ -37,4 +37,5 @@ class SignalMessage:
         else:
             return False
         
-    
+    def get_quantity_to_buy(self):
+        return self.quantity - self.curr_quantity

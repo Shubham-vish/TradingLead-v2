@@ -66,14 +66,18 @@ StrategyProcessor - Runs for each signal_message(contains user details, ticker, 
     -> Calls strategy_processor_runner(signal_message)
         -> processes the message (Todo: Need to add proper logic)
             if signal_message.to_do_something()
-              
                 if signal_message.to_buy()
                     fyers_service.place_buy_market(strategy_user.trade_ticker, strategy_user.quantity, strategy_user.product_type, tel_props)
-                
                 elif signal_message.to_sell()
                     fyers_service.place_sell_market(strategy_user.trade_ticker, strategy_user.curr_quantity, strategy_user.product_type, tel_props)
-              strategy_repo.update_curr_quantity_in_strategy(strategy_name, strategy_user, telemetry, tel_props)
-            
+
+              strategy_repo.update_strategy_executed_for_user(signal_message, telemetry, tel_props)
+              ----> Fetches the strategy with strategy_name (signal_message.strategy_name)
+                    filters_out other strategy_user and cur_strategy_user
+                    updates current_strategy_user's curr_quantity
+                    if buy signal curr_quanty = quantity
+                    else curr_quantity = 0
+                    updates user_strategy in the strategy and saves in cosmos 
             else:
                 not supported
 
