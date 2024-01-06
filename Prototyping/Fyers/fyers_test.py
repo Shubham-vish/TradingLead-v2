@@ -2,7 +2,7 @@ import os
 import sys
 
 # Below code is for testing
-sys.path.append(os.path.abspath(os.path.join("../../..")))
+sys.path.append(os.path.abspath(os.path.join("../..")))
 sys.path.append(os.path.abspath(os.path.join("..")))
 from Prototyping.setupConfig import setup_config
 
@@ -36,17 +36,19 @@ from dataclasses import asdict
 from dacite import from_dict
 from SharedCode.Models.Fyers.holding import Holding
 from SharedCode.Models.Fyers.holdings_response import HoldingsResponse, Holding
+from SharedCode.Repository.CosmosDB.stoplosses_repository import StoplossesRepository
+from SharedCode.Models.Order.user_stoplosses import UserStoplosses, Stoploss
 
 from SharedCode.Models.Fyers.orderbook_response import OrderBookResponse, OrderBook
 operation_id = "RandomOperationId"
 
-from SharedCode.Repository.CosmosDB.stoplosses_repository import StoplossesRepository
-from SharedCode.Models.Order.user_stoplosses import UserStoplosses, Stoploss
+
 
 tel_props = {
     Constants.SERVICE: Constants.access_token_generator_service,
     Constants.operation_id: operation_id,
 }
+
 stoploss_repo = StoplossesRepository()
 kv_service = KeyVaultService()
 fyers_details = kv_service.get_fyers_user(0)
@@ -56,7 +58,10 @@ telemetry = LoggerService()
 
 ticker_name = "NSE:ICICIBANK-EQ"
 netpositison = fyers_service.get_positions(tel_props)
+fyers_client.orderbook()
 orders = fyers_service.get_order_book(tel_props)
+rejected = [order for order in orders.orderBook if order.status == 5]
+notRejected = [order for order in orders.orderBook if order.status != 5 and order.symbol == "NSE:BATAINDIA-EQ"]
 holdingResponse = fyers_service.get_holdings(tel_props)
 res = fyers_client.holdings()
 holdingResponse.holdings

@@ -27,7 +27,7 @@ class OrderBook:
     remainingQuantity: int
     filledQty: int
     limitPrice: float
-    stopPrice: int
+    stopPrice: float
     tradedPrice: float
     type: int
     fyToken: str
@@ -72,7 +72,7 @@ class OrderBookResponse:
 
     def is_same_stoploss_present(self, ticker: str, qty: int) -> bool:
         for order in self.orderBook:
-            if order.symbol == ticker and order.qty == qty and order.stopPrice != 0 and order.status == OrderStatus.working and (order.type == OrderType.stoploss_limit.value or order.type == OrderType.stoploss_market.value):
+            if order.symbol == ticker and order.qty == qty and order.stopPrice != 0 and order.status == OrderStatus.working:
                 return True
         return False
 

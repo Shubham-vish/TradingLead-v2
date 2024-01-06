@@ -31,6 +31,8 @@ def send_signal_message(strategy_user:StrategyUser, buy_signal:bool, ltp:float, 
     telemetry.info(f"Sending signal message for user, ticker: {strategy_user.user_id}, {strategy_user.ticker} with signal: {buy_signal}", tel_props)
     signal_message = SignalMessage.from_strategy_user(strategy_user, strategy_name, buy_signal, ltp)
     sb_service.send_to_topic(json.dumps(asdict(signal_message)), signal_topic_name)
+    
+    tel_props.update({"signal_message": asdict(signal_message)})
     telemetry.info(f"Signal message sent for user, ticker: {strategy_user.user_id}, {strategy_user.ticker} with signal: {buy_signal}, ltp: {ltp}", tel_props)
 
 def process_strategy_user(strategy_user:StrategyUser, strategy:Strategy, tel_props):

@@ -5,7 +5,8 @@
       "name": "mytimer",
       "type": "timerTrigger",
       "direction": "in",
-      "schedule": "%SCHEDULE_CRON_FOR_MARKET_START_EXECUTOR%"
+      "schedule": "%SCHEDULE_CRON_FOR_MARKET_START_EXECUTOR%",
+      "runOnStartup": false
     }
   ]
 }

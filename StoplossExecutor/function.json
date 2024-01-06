@@ -6,7 +6,7 @@
       "type": "timerTrigger",
       "direction": "in",
       "schedule": "%STOPLOSS_CRON_FOR_30_MINUTES%",
-      "runOnStartup": true
+      "runOnStartup": false
     }
   ]
 }

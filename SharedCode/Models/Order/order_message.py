@@ -26,4 +26,4 @@ class OrderMessage:
     
     @staticmethod
     def from_stoplosses(stoplosses:List[Stoploss], user:User)->'OrderMessage':
-        return OrderMessage(user.user_id, user.user_id, user.fyers_user_name, user.kv_secret_name, user.name, OrderSide.buy_stoploss, stoplosses)
+        return OrderMessage(user.user_id, user.user_id, user.fyers_user_name, user.kv_secret_name, user.name, OrderSide.buy_stoploss.value, stoplosses)

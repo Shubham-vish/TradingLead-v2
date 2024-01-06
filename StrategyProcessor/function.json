@@ -1,0 +1,15 @@
+{
+  "scriptFile": "__init__.py",
+  "entryPoint": "main",
+  "bindings": [
+    {
+      "name": "message",
+      "type": "serviceBusTrigger",
+      "direction": "in",
+      "topicName": "signal-topic",
+      "subscriptionName": "executor",
+      "connection": "sbtradinglead_SERVICEBUS",
+      "maxConcurrentCalls": 1
+    }
+  ]
+}

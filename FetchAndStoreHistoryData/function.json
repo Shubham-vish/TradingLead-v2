@@ -5,7 +5,8 @@
       "name": "mytimer",
       "type": "timerTrigger",
       "direction": "in",
-      "schedule": "%SCHEDULE_CRON_FOR_STOCK_HISTORY_DATA_STORE%"
+      "schedule": "%SCHEDULE_CRON_FOR_STOCK_HISTORY_DATA_STORE%",
+      "runOnStartup": false
     }
   ]
 }

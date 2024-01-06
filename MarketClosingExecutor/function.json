@@ -5,7 +5,8 @@
       "name": "mytimer",
       "type": "timerTrigger",
       "direction": "in",
-      "schedule": "%STOPLOSS_CRON_FOR_CLOSING%"
+      "schedule": "%STOPLOSS_CRON_FOR_CLOSING%",
+      "runOnStartup": false
     }
   ]
 }

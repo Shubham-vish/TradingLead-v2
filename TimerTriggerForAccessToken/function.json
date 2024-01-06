@@ -5,7 +5,8 @@
       "name": "mytimer",
       "type": "timerTrigger",
       "direction": "in",
-      "schedule": "%SCHEDULE_CRON_FOR_ACCESS_TOKEN_GENERATOR%"
+      "schedule": "%SCHEDULE_CRON_FOR_ACCESS_TOKEN_GENERATOR%",
+      "runOnStartup": false
     }
   ]
 }

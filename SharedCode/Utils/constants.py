@@ -27,6 +27,7 @@ class Constants:
     order_executor_service = "OrderExecutorService"
     stoploss_executor_service = "StopLossExecutorService"
     strategy_executor_service = "StrategyExecutorService"
+    strategy_processor_service = "StrategyProcessorService"
     # telemetry custom dimensions keys
     username = "username"
     contact_number = "contact_number"

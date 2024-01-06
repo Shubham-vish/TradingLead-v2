@@ -180,20 +180,22 @@ class FyersService:
             }
         )
 
-        
+        exception = ""
         for attempt in range(3):
             try:
                 data = {
                     "symbol": ticker_name,
                     "qty": qty,
-                    "type": OrderType.stoploss_market.value,
+                    "type": OrderType.stoploss_limit.value,
                     "side": OrderSide.sell.value,
                     "productType": product_type,
-                    "stoploss": 0,
-                    "stopprice": stopprice,
+                    "limitPrice": stopprice - (stopprice * 0.02),
+                    "stopPrice": stopprice,
                     "validity": "DAY",
+                    "stoploss": 0,
                     "disclosedQty": 0,
                     "offlineOrder": False,
+                    "orderTag": "ApiStoploss",
                 }
                 
                 respnose = self.fyers_client.place_order(data=data)
@@ -210,12 +212,13 @@ class FyersService:
                     raise Exception(msg)
             except Exception as e:
                 telemetry.exception(f"Error in placing stoploss, attempt: {attempt}, data: {data}, error : {e}", tel_props)
+                exception = e
                 continue
-        msg = f"Max retries in placing stoploss, data: {data}, error"
+        msg = f"Max retries in placing stoploss, data: {data}, error, {exception}"
         telemetry.exception(msg, tel_props)
         raise Exception(msg)
     
-
+  
     def exit_positions(self, position_ids: List[str], tel_props):
         tel_props = tel_props.copy()
         tel_props.update({"position_ids": position_ids, Constants.fyers_user_name: self.fyers_username,
@@ -416,7 +419,7 @@ class FyersService:
         telemetry.info(f"Current holdings: {hldng_res}", tel_props)  
         telemetry.info(f"Current positions: {pos_res}", tel_props)
         telemetry.info(f"Current orderbook: {orderbook}", tel_props)
-        exception_occurred = False
+        exceptions = []
         
         for stoploss in stoplosses:
             
@@ -428,6 +431,10 @@ class FyersService:
                 
                 qty = qty_positions + qty_holdings
                 telemetry.info(f"Qty for {stoploss.ticker}: {qty}", tel_props)
+                
+                if qty == 0:
+                    telemetry.info(f"No qty for {stoploss.ticker}: {qty}", tel_props)
+                    continue
                 if not orderbook.is_same_stoploss_present(stoploss.ticker, qty):
                     cur_orders = orderbook.get_stoploss_orders_for_ticker(stoploss.ticker)
                     if cur_orders:
@@ -436,14 +443,16 @@ class FyersService:
                         telemetry.info(f"Exited current orders for {stoploss.ticker}, {qty}: {cur_orders}", tel_props)
                     else:
                         telemetry.info(f"No current orders for {stoploss.ticker}, {qty}", tel_props)
-                    
                     response = self.set_stop_loss(stoploss, qty, tel_props)
-                    telemetry.info(f"Stoploss set for {stoploss}", tel_props)
+                    telemetry.info(f"Stoploss response for {stoploss}, {qty}, response: {response}", tel_props)
                 else:
                     telemetry.info(f"Stoploss already set for -> {stoploss.ticker}, {qty}", tel_props)
             except Exception as e:
                 telemetry.exception(f"Error in getting qty: {stoploss}, {e}", tel_props)
-                exception_occurred = True
+                exceptions.append(e)
+
+        if len(exceptions):
+            raise Exception(f"Errors in setting some stoplosses: {exceptions}")
                 
     def place_orders(self, orders: List[Order], tel_props):
         
@@ -454,10 +463,10 @@ class FyersService:
         for order in orders:
             telemetry.info(f"Processing order: {order}", tel_props)    
             if(order.order_type == OrderType.market.value):
-                if order.side == OrderSide.buy.value.value:
+                if order.side == OrderSide.buy.value:
                     telemetry.info(f"Placing buy market order: {order}", tel_props)
                     self.place_buy_market(order.symbol, order.quantity, order.product_type, tel_props)
-                elif order.side == OrderSide.sell.value.value:
+                elif order.side == OrderSide.sell.value:
                     telemetry.info(f"Placing sell market order: {order}", tel_props)
                     self.place_sell_market(order.symbol, order.quantity, order.product_type, tel_props)
                 else:
@@ -468,31 +477,6 @@ class FyersService:
                 raise Exception(f"Order type not supported: {order}")
             
             telemetry.info(f"Qty for {order.symbol}: {order.quantity}", tel_props)
-            
-            
-    def is_stoploss_triggered(self, stoploss: Stoploss, hldng_res: HoldingsResponse,pos_res:NetPositionResponse , tel_props):
-        
-        tel_props = tel_props.copy()
-        tel_props.update({"action": "is_stoploss_triggered", "stoploss": asdict(stoploss), Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})
-        
-        telemetry.info(f"Checking stoploss trigger for {stoploss}", tel_props)
-        
-        qty_positions = pos_res.get_quantity(stoploss.ticker)
-        qty_holdings = hldng_res.get_quantity(stoploss.ticker)
-        
-        qty = qty_positions + qty_holdings
-        telemetry.info(f"Qty for {stoploss.ticker}: {qty}", tel_props)
-        
-        if qty == 0:
-            telemetry.info(f"No qty for {stoploss.ticker}: {qty}", tel_props)
-            return True
-        
-        if stoploss.is_triggered(qty):
-            telemetry.info(f"Stoploss triggered for {stoploss}", tel_props)
-            return True
-        
-        telemetry.info(f"Stoploss not triggered for {stoploss}", tel_props)
-        return False
            
     # Apis to get History data
     # No retries implemented as of now
