@@ -29,7 +29,8 @@ from SharedCode.Runners.market_start_executor_runner import market_start_execute
 import json
 from SharedCode.Repository.ServiceBus.servicebus_factory import ServiceBusFactory
 from dacite import from_dict
-
+from SharedCode.Runners.order_executor_runner import order_executor_runner
+from SharedCode.Runners.access_token_generator_runner import access_token_generator_runner
 kv_service = KeyVaultService()
 telemetry = LoggerService()
 user_repository = UserRepository()
@@ -67,5 +68,26 @@ sb_receiver = sb_client.get_subscription_receiver("orders", "executor")
 msgs = sb_service.peek_from_subcription("orders", "executor", 1)
 msg = msgs[0]
 
+
 dict = json.loads(str(msg))
 order_message = from_dict(OrderMessage, dict)
+
+
+order_executor_runner(order_message, tel_props)
+access_token_generator_runner(tel_props)
+
+from SharedCode.Utils.utility import FunctionUtils
+
+key = FunctionUtils.get_key_for_user_access_token("XS42465")
+from SharedCode.Repository.Cache.redis_cache_service import RedisCacheService
+
+redis_service = RedisCacheService()
+
+token = redis_service.get_decoded_value(key)
+
+from SharedCode.Repository.Fyers.fyers_service import FyersService
+fyer_service = FyersService.from_kv_secret_name("XS42465", kv_service)
+
+fyers_deails = kv_service.get_fyers_user(0)
+fyer_service = FyersService(fyers_deails)
+fyer_service.get_order_book(tel_props)

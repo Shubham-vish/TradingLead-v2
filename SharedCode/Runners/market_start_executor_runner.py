@@ -32,8 +32,9 @@ def set_stoploss_for_user(user_stoplosses:UserStoplosses, tel_props):
         telemetry.info(f"Setting stoploss for {asdict(user_stoplosses)}", tel_props)
         user = user_repository.get_user(user_stoplosses.user_id, telemetry, tel_props)
         order_message = OrderMessage.from_stoplosses(stoplosses, user)
-        sb_service.send_to_topic(json.dumps(asdict(order_message)), order_topic_name)
-        telemetry.info(f"Stoploss set successfully for {asdict(user_stoplosses)}", tel_props)
+        order_msg_json = json.dumps(asdict(order_message))
+        sb_service.send_to_topic(order_msg_json, order_topic_name)
+        telemetry.info(f"Stoploss msg sent successfully: {order_msg_json}", tel_props)
         return True, user_stoplosses.user_id
     except Exception as e:
         msg = f"An error occurred while setting stoploss for {asdict(user_stoplosses)}: {e}"
@@ -54,7 +55,6 @@ def set_stoplosses_for_all_users(tel_props):
     results = []
     
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        executor.map(set_stoploss_for_user, users_stoplosses, tel_props)
         futures = [executor.submit(set_stoploss_for_user, user_stoplosses, tel_props) for user_stoplosses in users_stoplosses]
         for future in concurrent.futures.as_completed(futures):
             try:

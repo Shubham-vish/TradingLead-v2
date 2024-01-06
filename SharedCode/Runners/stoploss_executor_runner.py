@@ -7,7 +7,6 @@ from SharedCode.Models.Order.user_stoplosses import UserStoplosses
 from SharedCode.Repository.CosmosDB.user_repository import UserRepository
 import concurrent.futures
 import json
-from SharedCode.Models.Order.order_message import OrderMessage
 from SharedCode.Repository.ServiceBus.servicebus_service import ServiceBusService
 from dataclasses import asdict
 from SharedCode.Models.Order.user_stoplosses import UserStoplosses, Stoploss

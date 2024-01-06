@@ -404,7 +404,8 @@ class FyersService:
         return response
         
     
-    
+    # Sets Normal Stoplosses for buy orders
+    # Order will be StopLimit, with stopprice and a limit price 2% less than stopprice
     def set_stop_losses(self, stoplosses: List[Stoploss], tel_props):
         
         tel_props = tel_props.copy()
