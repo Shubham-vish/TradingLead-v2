@@ -98,3 +98,6 @@ class Constants:
     
     service_bus_connection_string = "ServiceBusConnectionString"
     ORDER_TOPIC_NAME = "OrderTopicName"
+
+    twilio_account_sid = "TwilioAccountSid"
+    twilio_auth_token = "TwilioAuthToken"

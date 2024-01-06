@@ -22,3 +22,4 @@ azure-communication-email
 azure-servicebus
 dacite
 # TA-Lib
+twilio

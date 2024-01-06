@@ -1,7 +1,9 @@
+
 import logging
 
 import azure.functions as func
 
+messagebody 
 
 def main(message: func.ServiceBusMessage):
     # Log the Service Bus Message as plaintext
