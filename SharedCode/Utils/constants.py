@@ -18,6 +18,7 @@ class Constants:
     # Telemetry Service Names
     fetch_stock_info_service = "TickerListService"
     holdings_service = "HoldingsService"
+    alerts_service = "AlertsService"
     user_service = "UsersService"
     access_token_generator_service = "AccessTokenGeneratorService"
     fetch_store_participants_data_service = "FetchStoreParticipantsDataService"
@@ -66,6 +67,7 @@ class Constants:
     REQUEST_BODY = "request_body"
     RESPONSE_BODY = "response_body"
     REQUEST_PARAM_USER_ID = "userId"
+    REQUEST_PARAM_CORRECT_USER_ID = "user_id"
 
     COSMOS_QUERY = "CosmosQuery"
     COSMOS_PARAMS = "CosmosParams"

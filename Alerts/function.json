@@ -7,7 +7,7 @@
       "direction": "in",
       "name": "req",
       "methods": ["get", "post", "delete"],
-      "route": "alerts/{userId}"
+      "route": "alerts/{user_id}"
     },
     {
       "type": "http",

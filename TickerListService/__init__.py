@@ -26,7 +26,6 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
     cache_key = "ticker_list"
     cached_data = redis_cache.get_value(cache_key)
-
     # Check if data is already in cache
     if cached_data:
         telemetry.info("Data found in cache.", tel_props)
@@ -38,10 +37,10 @@ def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
 
     try:
         df = pd.read_excel(excel_path, sheet_name='Sheet1')
-        stock_info = df[['Symbol_NS', 'Company Name']].to_dict('records')
+        stock_info = df[['Symbol_NS', 'Company Name', 'Fyers_Ticker']].to_dict('records')
         cleaned_data = [{k: (v if pd.notna(v) else None) for k, v in record.items()} for record in stock_info]
         json_data = json.dumps(cleaned_data)
-
+        telemetry.info(f"Data read from Excel file., {json_data}", tel_props)
         # Save the fetched data to Redis cache
         redis_cache.set_value(cache_key, json_data)
         tel_props.update({Constants.RESPONSE_BODY: json_data, Constants.CACHE_KEY: cache_key})
