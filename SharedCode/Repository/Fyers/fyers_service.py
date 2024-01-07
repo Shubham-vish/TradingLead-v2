@@ -451,7 +451,7 @@ class FyersService:
     def set_stop_losses(self, stoplosses: List[Stoploss], tel_props):
         
         tel_props = tel_props.copy()
-        tel_props.update({"action": "setStoplosses", "stoplosses": [asdict(stoploss) for stoploss in stoplosses], Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})
+        tel_props.update({"action": "setStoplosses", "stoplosses": stoplosses, Constants.fyers_user_name: self.fyers_username, Constants.client_id: self.client_id})
         
         telemetry.info(f"Processing stoplosses: {stoplosses}", tel_props)
         

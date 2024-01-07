@@ -6,9 +6,13 @@ from datetime import datetime
 import yfinance as yf
 from SharedCode.Repository.Logger.logger_service import LoggerService
 import numpy as np
-
+from SharedCode.Repository.Cache.redis_cache_service import RedisCacheService
+from SharedCode.Utils.utility import FunctionUtils
+from SharedCode.Utils.retries import retry_decorator_with_tel_props
 telemetry = LoggerService()
 
+
+    
 class StockChart:
 
     @staticmethod
@@ -108,8 +112,12 @@ class StockChart:
         # Show the figure
         fig.show()
         
+    
+    
 
-    def generate_chart(self, ticker = "AAPL", period="1y", trend_start = None, trend_end = None,  chart_type = "scatter", point = "Close", stop_price = None, avg_price =None)-> go.Figure:
+   
+    @retry_decorator_with_tel_props(max_retries=3, delay=0.5)
+    def generate_chart(self, ticker = "AAPL", period="1y", trend_start = None, trend_end = None,  chart_type = "scatter", point = "Close", stop_price = None, avg_price =None, tel_props=None)-> go.Figure:
         if trend_start:
             trend_start = pd.to_datetime(trend_start)
         if trend_end:
@@ -123,8 +131,18 @@ class StockChart:
         if trend_start:
             period = self.determine_period(trend_start)
                 
-        hist = yf.download(ticker, period = period)
-            
+        redis_key = FunctionUtils.get_key_for_yfinance(ticker, period)
+        cache = RedisCacheService()
+        hist = cache.get_decoded_value(redis_key)
+        
+        if not hist:
+            telemetry.info(f"Cache miss, Fetching data from yfinance for ticker: {ticker}, period: {period}", tel_props)
+            hist = yf.download(ticker, period = period)
+            value = hist.to_json()
+            cache.set_value(redis_key, value)
+        else:
+            telemetry.info(f"Cache hit, Fetched data from cache for ticker: {ticker}, period: {period}", tel_props)
+            hist = pd.read_json(hist)
 
         if chart_type == 'scatter':
             fig = self.create_scatter_chart(hist)
@@ -142,6 +160,7 @@ class StockChart:
             fig = self.add_avg_price_line(fig, hist, avg_price)
 
         return fig
+    
 
     def determine_period(self, trend_start):
         today = pd.to_datetime(datetime.today().strftime('%Y-%m-%d'))

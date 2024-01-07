@@ -6,13 +6,13 @@ telemetry = LoggerService()
 stock_chart = StockChart()
 
 
-def plot_chart(params,  tel_props) -> func.HttpResponse:
+def plot_chart_runner(params,  tel_props) -> func.HttpResponse:
 
     tel_props.update({"params": params, "action":"plot_chart"})
     telemetry.info(f'Received parameters: {params}', tel_props)
 
     try:
-        fig =  stock_chart.generate_chart(**params)
+        fig =  stock_chart.generate_chart(**params, tel_props=tel_props)
         html_string = fig.to_html(full_html=False)
         return func.HttpResponse(body=html_string, mimetype='text/html')
     except Exception as e:

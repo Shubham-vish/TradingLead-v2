@@ -45,8 +45,3 @@ class LoggerService:
         if retryable:
             props['retryable'] = True
         return props
-    
-    def _combine_properties(self, properties):
-        combined_properties = {**self.global_properties, **(properties or {})}
-        props = {'custom_dimensions': combined_properties}
-        return props
