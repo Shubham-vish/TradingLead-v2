@@ -15,8 +15,27 @@ class SignalMessage:
     ltp: float
     product_type: str
     quantity:int
+    curr_quantity:int
     
     
     @staticmethod
     def from_strategy_user(strategy_user:StrategyUser,  strategy_name: str, signal:bool, ltp:float )->'SignalMessage':
-        return SignalMessage(strategy_user.ticker, strategy_user.trade_ticker, strategy_user.user_id, strategy_user.fyers_user_name, strategy_user.kv_secret_name, strategy_user.name, strategy_name, int(signal), ltp, strategy_user.product_type, strategy_user.quantity)
+        return SignalMessage(strategy_user.ticker, strategy_user.trade_ticker, strategy_user.user_id, strategy_user.fyers_user_name, strategy_user.kv_secret_name, strategy_user.name, strategy_name, int(signal), ltp, strategy_user.product_type, strategy_user.quantity, strategy_user.curr_quantity)
+    
+    def to_sell(self):
+        return self.signal == 0 and self.curr_quantity > 0
+    
+    def to_buy(self):
+        return self.signal == 1 and self.curr_quantity < self.quantity
+    
+    
+    def to_do_something(self):
+        if self.to_sell():
+            return True
+        elif self.to_buy():
+            return True
+        else:
+            return False
+        
+    def get_quantity_to_buy(self):
+        return self.quantity - self.curr_quantity

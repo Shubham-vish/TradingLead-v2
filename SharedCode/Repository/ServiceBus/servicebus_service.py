@@ -16,5 +16,11 @@ class ServiceBusService:
         sender =  self.client.get_topic_sender(topic_name)
         service_bus_message = ServiceBusMessage(message)
         sender.send_messages(service_bus_message)
+        
+        
+    def peek_from_subcription(self, topic_name, subscription_name, count:int =1):
+        receiver = self.client.get_subscription_receiver(topic_name, subscription_name)
+        messages = receiver.peek_messages(max_message_count = count)
+        return messages
 
         

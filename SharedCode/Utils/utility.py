@@ -23,6 +23,11 @@ class FunctionUtils:
     def get_key_for_user_access_token(username):
         redis_key = f"{username}-token"
         return redis_key
+    
+    @staticmethod
+    def get_key_for_yfinance(ticker, period):
+        redis_key = f"{ticker}-{period}"
+        return redis_key
 
     @staticmethod
     def get_storage_ticker(ticker):

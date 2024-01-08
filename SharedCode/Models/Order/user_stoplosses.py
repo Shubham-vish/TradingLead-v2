@@ -33,12 +33,18 @@ class Stoploss:
     id: str
     type: str
     ticker: str
-    price: float
-    qty: int
     product_type: str
+    symbol_ns: str
+    is_alert : bool = False
+    alert_side : int = 0
+    is_stoploss : bool = False
+    qty: Optional[int] = None
+    cur_qty: Optional[int] = 0
+    price: Optional[float] = None
     trend_start: Optional[str] = None
     trend_end: Optional[str] = None
     check_at: Optional[str] = None
+    stock_name: Optional[str] = None
     
     def to_dict(self):
         return {
@@ -51,6 +57,11 @@ class Stoploss:
             'trend_start': self.trend_start,
             'trend_end': self.trend_end,
             'check_at': self.check_at,
+            'is_alert': self.is_alert,
+            'alert_side': self.alert_side,
+            'is_stoploss': self.is_stoploss,
+            'stock_name': self.stock_name,
+            'symbol_ns': self.symbol_ns
         }
 
         
@@ -63,29 +74,29 @@ class UserStoplosses:
     
     def get_stoplosses(self, stoploss_type: StoplossType, check_at: Optional[StoplossCheckAt] = None) -> List[Stoploss]:
         if check_at:
-            return [stoploss for stoploss in self.stop_losses if stoploss.type == stoploss_type.value and stoploss.check_at == check_at.value]
+            return [stoploss for stoploss in self.stop_losses if stoploss.type == stoploss_type.value and stoploss.check_at == check_at.value and stoploss.is_stoploss]
         else:
-            return [stoploss for stoploss in self.stop_losses if stoploss.type == stoploss_type.value]
+            return [stoploss for stoploss in self.stop_losses if stoploss.type == stoploss_type.value and stoploss.is_stoploss]
 
     def get_normal_stoplosses(self) -> List[Stoploss]:
-        normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.normal.value]
+        normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.normal.value and stoploss.is_stoploss]
         return normal_stoplosses
     
     def get_30t_line_stoplosses(self) -> List[Stoploss]:
-        normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.line.value and stoploss.check_at == StoplossCheckAt.thirty_minute.value]
+        normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.line.value and stoploss.check_at == StoplossCheckAt.thirty_minute.value and stoploss.is_stoploss]
         return normal_stoplosses
     
     def get_line_stoplosses(self, check_at:StoplossCheckAt):
-        stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.line.value and stoploss.check_at == check_at.value]
+        stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.line.value and stoploss.check_at == check_at.value and stoploss.is_stoploss]
         return stoplosses    
     
 
     def get_closing_line_stoplosses(self) -> List[Stoploss]:
-        normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.line.value and stoploss.check_at == StoplossCheckAt.closing.value]
+        normal_stoplosses = [stoploss for stoploss in self.stop_losses if stoploss.type == StoplossType.line.value and stoploss.check_at == StoplossCheckAt.closing.value and stoploss.is_stoploss]
         return normal_stoplosses
     
     def get_stoplosses_dict(self) -> dict:
-        stop_losses_dict = [stoploss.to_dict() for stoploss in self.stop_losses]
+        stop_losses_dict = [stoploss.to_dict() for stoploss in self.stop_losses if stoploss.is_stoploss]
         return dict(stop_losses_dict)
     
     def add_stoploss(self, stoploss: Stoploss):
@@ -96,7 +107,7 @@ class UserStoplosses:
             self.stop_losses.append(stoploss)
 
     def get_symbols_from_stoplosses(self):
-        symbols = [stoploss.ticker for stoploss in self.stop_losses]
+        symbols = [stoploss.ticker for stoploss in self.stop_losses if stoploss.is_stoploss]
         return ",".join(symbols)
     
     def get_quote_dict(self):
@@ -104,7 +115,10 @@ class UserStoplosses:
             "symbols": self.get_symbols_from_stoplosses()
         }
         return data
-
+    
+    def get_alerts(self):
+        alerts = [stoploss for stoploss in self.stop_losses if stoploss.is_alert]
+        return alerts
 # Example Usage
 # jsonstring = json.loads(myjsonstring)
 # root = Root.from_dict(jsonstring)

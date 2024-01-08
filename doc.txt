@@ -1,0 +1,95 @@
+StopLossExecutor -  // Runs daily at 9:40 AM, 10:10 AM, and every 30 minutes until 3:10 PM IST ("0 10,40 4-9 * * *",)
+  - Calls stoploss_executor_runner(StoplossCheckAt.thirty_minute, tel_props)
+
+MarketClosingExecutor
+  -> market_closing_executor_runner -> Calls stoploss_executor_runner(StoplossCheckAt.closing, tel_props)
+
+stoploss_executor_runner(checkAt, tel_props)
+  -> execute_stoplosses_for_all_users(checkAt, tel_props) 
+      --> gets stoplosses for all users and process them parallely 
+          ---> execute_stoploss_for_user(user_stoplosses: UserStoplosses, check_at, tel_props)
+                fetch user_stoplosses.get_stoplosses(line, chat_at)
+                ----> if stoplosses are there
+                        call userRepo get_user
+                        get fyers_service
+                        get holdings, positions, and quote(tickers_ltp) for all symbols in stoplosses
+                        for each stoploss in stoplosses
+                            -----> get_curr_qty (holdings + positions)
+                                    call check_and_execute_stoploss(stoploss, fyers_service, curr_qty, tickers_ltp.ltp)
+                                    ------> if ltp is greater and curr_qty < stoploss.curr_qty
+                                                place buy market order -> fyers_service.place_buy_market
+                                            else if ltp is lesses and curr_qty > 0
+                                                place sell market order -> fyers_service.place_sell_market
+                                            else 
+                                                do nothing
+
+MarketStartExecutor - Runs at 9:16AM, 
+  -> Calls market_start_executer_runner 
+  --> set_stoplosses_for_all_users -> fetch all stoplosses and for each userStoplosses process parallely
+    ---> set_stoploss_for_user(userStoplosses)
+        ----> fetches all normal stoploss and get_user from userRepo 
+        -------> creates a order_message and sends to order_topic to be executed by OrderExecutor, that eventually sets stoplosses.
+
+
+OrderExecutor - Executes orders in fyers based on the OrderMessage(list of orders for a user), 
+  ->order_executor_runner(order_message)
+        Processes order_message Based on the order_message.OrderSide(buy_stoploss, buy, sell)
+        --> Process buy stoplosses (Tested completeley)
+            - Calls set_stop_losses for fyers_service (Need to see if there is any enhancement that can be made)
+                - For each stoploss, check the required quantity to place order and place it.
+        --> Process buy orders? (Not yet tested)
+        --> Process sell orders? (Not yet tested)
+
+
+
+StrategyExecutor - Runs daily at 9:40 AM, 10:10 AM, and every 30 minutes until 3:10 PM IST ("0 10,40 4-9 * * *")
+  -> calls strategy_kernel_regression_runner
+    --> gets strategy from strategy_repo with name "KernelRegressionStrategy",
+    --> processes strategy for each user parallely(quant, ticker, trade_ticker, product_type)
+        ---> process_strategy_user(strategy_user:StrategyUser, strategy:Strategy)
+              ----> gets history for the ticker 
+                    calculates the signal buy/sell and calls process_signal
+                    -----> process_signal(strategy_user, buy_signal, ltp)
+                           ---> creates a signal_message
+                                if signal need to be sent to_do_something, (if in trade and sell, if not in trade and buy)
+                                    sends message to signal_topic_name
+                                    This message is then processed by StrategyProcessor
+                                else do nothing
+
+                    sends signal_message(strategy_user, buy_signal, ltp)
+                      -----> creates signal_message from strategy_user, buy_signal, strategy_name
+                              sends the message to signal_topic_name
+                              this message is processed then by StrategyProcessor
+
+
+StrategyProcessor - Runs for each signal_message(contains user details, ticker, quant and strategy details)
+    -> Calls strategy_processor_runner(signal_message)
+        -> processes the message (Todo: Need to add proper logic)
+            if signal_message.to_do_something()
+                if signal_message.to_buy()
+                    fyers_service.place_buy_market(strategy_user.trade_ticker, strategy_user.quantity, strategy_user.product_type, tel_props)
+                elif signal_message.to_sell()
+                    fyers_service.place_sell_market(strategy_user.trade_ticker, strategy_user.curr_quantity, strategy_user.product_type, tel_props)
+
+              strategy_repo.update_strategy_executed_for_user(signal_message, telemetry, tel_props)
+              ----> Fetches the strategy with strategy_name (signal_message.strategy_name)
+                    filters_out other strategy_user and cur_strategy_user
+                    updates current_strategy_user's curr_quantity
+                    if buy signal curr_quanty = quantity
+                    else curr_quantity = 0
+                    updates user_strategy in the strategy and saves in cosmos 
+            else:
+                not supported
+
+--------------------------------------------------------------------
+--
+
+{
+  "SCHEDULE_CRON_FOR_ACCESS_TOKEN_GENERATOR": "0 0 */3 * * *", // Runs every 3 hours, on the hour UTC (e.g., 5:30 AM, 8:30 AM, 11:30 AM, etc., IST)
+  "SCHEDULE_CRON_FOR_PARTICIPATION_DATA_STORE": "0 0 12-17 * * *", // Runs daily at every hour from 5:30 PM to 10:30 PM IST
+  "STOPLOSS_CRON_FOR_30_MINUTES": "0 10,40 4-9 * * *", // Runs daily at 9:40 AM, 10:10 AM, and every 30 minutes until 3:10 PM IST
+  "STRATEGY_EXECUTOR_CRON": "0 10,40 4-9 * * *", // Runs daily at 9:40 AM, 10:10 AM, and every 30 minutes until 3:10 PM IST
+  "SCHEDULE_CRON_FOR_MARKET_START_EXECUTOR": "0 46 3 * * *", // Runs daily at 9:16 AM IST
+  "STOPLOSS_CRON_FOR_CLOSING": "0 50 9 * * *", // Runs daily at 3:20 PM IST
+  "SCHEDULE_CRON_FOR_STOCK_HISTORY_DATA_STORE": "0 30 10 * * *" // Runs daily at 4:00 PM IST
+}

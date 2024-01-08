@@ -18,6 +18,7 @@ class Constants:
     # Telemetry Service Names
     fetch_stock_info_service = "TickerListService"
     holdings_service = "HoldingsService"
+    alerts_service = "AlertsService"
     user_service = "UsersService"
     access_token_generator_service = "AccessTokenGeneratorService"
     fetch_store_participants_data_service = "FetchStoreParticipantsDataService"
@@ -25,6 +26,7 @@ class Constants:
     market_start_executor_services = "MarketStartExecutorService"
     market_close_executor_services = "MarketCloseExecutorService"
     order_executor_service = "OrderExecutorService"
+    plot_chart_service = "PlotChartService"
     stoploss_executor_service = "StopLossExecutorService"
     strategy_executor_service = "StrategyExecutorService"
     strategy_processor_service = "StrategyProcessorService"
@@ -65,6 +67,7 @@ class Constants:
     REQUEST_BODY = "request_body"
     RESPONSE_BODY = "response_body"
     REQUEST_PARAM_USER_ID = "userId"
+    REQUEST_PARAM_CORRECT_USER_ID = "user_id"
 
     COSMOS_QUERY = "CosmosQuery"
     COSMOS_PARAMS = "CosmosParams"

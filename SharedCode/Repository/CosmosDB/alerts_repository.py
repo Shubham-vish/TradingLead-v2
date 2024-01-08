@@ -2,10 +2,18 @@ import uuid
 from azure.cosmos import exceptions
 from SharedCode.Utils.constants import Constants
 import json
+from SharedCode.Repository.CosmosDB.CosmosUtils.cosmos_db_service import CosmosDbService
+from SharedCode.Repository.Logger.logger_service import LoggerService
+from SharedCode.Repository.KeyVault.keyvault_service import KeyVaultService
+
 
 class AlertsRepository:
-    def __init__(self, cosmos_service, container_name):
-        self.container = cosmos_service.get_container(container_name)
+    def __init__(self):
+        kv_service = KeyVaultService()
+        database_id = kv_service.get_secret(Constants.DATABASE_ID)
+        alerts_container_name = kv_service.get_secret(Constants.ALERTS_CONTAINER_NAME)
+        cosmos_db_service = CosmosDbService(database_id)
+        self.container = cosmos_db_service.get_container(alerts_container_name)
 
     def fetch_user_alerts(self, user_id, telemetry, tel_props):
         query = "SELECT * FROM c WHERE c.userId = @userId"
@@ -22,6 +30,7 @@ class AlertsRepository:
             query=query,
             parameters=parameters,
             enable_cross_partition_query=True))
+        
         if len(items) > 0:
             telemetry.info("Returning alerts from alertsRepo.", tel_props)
             return items[0]
@@ -30,7 +39,7 @@ class AlertsRepository:
             return None
         
 
-    def create_user_alert(self, user_id, trend_start, trend_end, ticker, stock_name, telemetry, tel_props):
+    def create_user_alert(self, user_id, trend_start, trend_end, ticker, stock_name, telemetry:LoggerService, tel_props):
         telemetry.info(f"Creating alert for user ID: {user_id}, ticker: {ticker}", tel_props)
         query = f"SELECT * FROM c WHERE c.userId = '{user_id}'"
         telemetry.info(f"Query: {query}", tel_props)
@@ -45,10 +54,10 @@ class AlertsRepository:
                 "userId": user_id,
                 "Alerts": [
                     {
-                        "trendStart": trend_start,
-                        "trendEnd": trend_end,
+                        "trend_start": trend_start,
+                        "trend_end": trend_end,
                         "ticker": ticker,
-                        "StockName": stock_name
+                        "stock_name": stock_name
                     }
                 ]
             }
@@ -61,7 +70,7 @@ class AlertsRepository:
             self.update_user_alert(existing_entry, trend_start, trend_end, ticker, stock_name, telemetry, tel_props)
 
 
-    def update_user_alert(self, existing_entry, trend_start, trend_end, ticker, stock_name, telemetry, tel_props):
+    def update_user_alert(self, existing_entry, trend_start, trend_end, ticker, stock_name, telemetry:LoggerService, tel_props):
         tel_props.update({"ExistingEntry": json.dumps(existing_entry)})
         telemetry.info(f"Updating alert for ticker: {ticker}", tel_props)
         existing_alerts = existing_entry.get("Alerts", [])
@@ -84,7 +93,7 @@ class AlertsRepository:
         telemetry.info("Alert updated.")
         
     
-    def delete_user_alert(self, user_id, ticker, telemetry, tel_props):
+    def delete_user_alert(self, user_id, ticker, telemetry:LoggerService, tel_props):
         telemetry.info(f"Deleting alert for user ID: {user_id}, ticker: {ticker}", tel_props)
         query = f"SELECT * FROM c WHERE c.userId = '{user_id}'"
         telemetry.info(f"Query: {query}", tel_props)

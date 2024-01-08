@@ -6,6 +6,7 @@ from typing import List, Dict, Any
 from dacite import from_dict
 from dataclasses import asdict
 from SharedCode.Models.Strategy.strategy import Strategy, StrategyUser
+from SharedCode.Models.Strategy.signal_message import SignalMessage
 
 class StrategyRepository:
     def __init__(self):
@@ -60,3 +61,43 @@ class StrategyRepository:
         except Exception as e:
             telemetry.exception(f"Error occurred while adding user to strategy {strategy_name}. Error: {str(e)}", tel_props)
             raise e
+
+    def update_strategy_executed_for_user(self, signal_message: SignalMessage, telemetry:LoggerService, tel_props: Dict[str, Any]):
+        tel_props = tel_props.copy()
+        tel_props.update({"action": "update_strategy_executed_for_user"})
+        exception = None
+        for attempt in range(3):
+            try:
+                strategy = self.get_strategy(signal_message.strategy_name, telemetry, tel_props)
+                
+                if strategy is None:
+                    telemetry.exception(f"Cannot update strategy_executed_for_user. Strategy {signal_message} not found.", tel_props)
+                    return
+                
+                other_strategy_users = [user for user in strategy.strategy_users 
+                                        if (user.user_id != signal_message.user_id 
+                                            or user.ticker != signal_message.ticker)]
+                
+                cur_strategy_user = next((strategy_user for strategy_user in strategy.strategy_users if strategy_user.ticker == signal_message.ticker and strategy_user.user_id ==  signal_message.user_id), None)
+                
+                if signal_message.to_buy():
+                    cur_strategy_user.curr_quantity = cur_strategy_user.quantity
+                else:
+                    cur_strategy_user.curr_quantity = 0
+                
+                other_strategy_users.append(cur_strategy_user)
+
+                strategy.strategy_users = other_strategy_users
+                
+                updated_strategy = asdict(strategy)
+
+                self.container.upsert_item(updated_strategy)
+
+                telemetry.info(f"Updated strategy_executed_for_user for user {signal_message.user_id} in strategy {signal_message}.", tel_props)
+                return
+            except Exception as e:
+                telemetry.exception_retriable(f"Attempt: {attempt} Error occurred while updating strategy_executed_for_user for user {signal_message.user_id} in strategy {signal_message}. Error: {str(e)}", tel_props)
+                exception = e
+        
+        telemetry.exception(f"Error occurred while updating strategy_executed_for_user for user {signal_message.user_id} in strategy {signal_message}, exception:{exception}.", tel_props)
+        raise exception
