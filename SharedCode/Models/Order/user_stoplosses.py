@@ -61,7 +61,8 @@ class Stoploss:
             'alert_side': self.alert_side,
             'is_stoploss': self.is_stoploss,
             'stock_name': self.stock_name,
-            'symbol_ns': self.symbol_ns
+            'symbol_ns': self.symbol_ns,
+            'cur_qty': self.cur_qty
         }
 
         

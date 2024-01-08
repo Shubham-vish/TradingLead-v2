@@ -5,8 +5,6 @@ class CallingService:
     def __init__(self):
         self.client = CallingFactory.get_client()
     
-   
-   
     
     def call_to(self, to_number):
         url="http://demo.twilio.com/docs/voice.xml"

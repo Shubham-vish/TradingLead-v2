@@ -70,7 +70,9 @@ def process_post_request(req, user_id, tel_props)-> func.HttpResponse:
     
     ticker = req_body.get('ticker')
     
-    req_body.setdefault('id', str(uuid.uuid4())) 
+    if not req_body.get('id'):
+        req_body['id'] = str(uuid.uuid4())
+    
     req_body.setdefault('qty', 0)                
     req_body.setdefault('product_type', 'cnc')   
 
