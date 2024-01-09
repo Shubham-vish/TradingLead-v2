@@ -62,7 +62,16 @@ tel_props = {
     Constants.operation_id: operation_id,
 }
 
-# strategy = strategy_repo.get_strategy(strategy_name, telemetry, tel_props)
-# strategy_user = strategy.strategy_users[1]
+strategy = strategy_repo.get_strategy(strategy_name, telemetry, tel_props)
+strategy_user = strategy.strategy_users[1]
+
+from SharedCode.Utils.utility import FunctionUtils
+
+FunctionUtils.set_trade_ticker_for_fyers_ticker("NSE:NIFTY50-INDEX", "MARGIN", "NSE:NIFTY24JANFUT")
+
+df = fyers_service.history("NSE:NIFTY24JANFUT", "2021-01-01", "2022-01-01", "1D", tel_props)
+
+df.head()
+asdict(strategy_user)
 
 strategy_kernel_regression_runner(tel_props)

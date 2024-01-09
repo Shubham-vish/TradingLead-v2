@@ -42,11 +42,14 @@ from SharedCode.Models.Order.user_stoplosses import UserStoplosses, Stoploss
 from SharedCode.Models.Fyers.orderbook_response import OrderBookResponse, OrderBook
 operation_id = "RandomOperationId"
 
+from SharedCode.Utils.stock_chart import StockChart
 
+stock_chart = StockChart()
 
+# stock_chart.generate_chart(tel_props=tel_props)
 tel_props = {
-    Constants.SERVICE: Constants.access_token_generator_service,
-    Constants.operation_id: operation_id,
+Constants.SERVICE: Constants.access_token_generator_service,
+Constants.operation_id: operation_id,
 }
 
 stoploss_repo = StoplossesRepository()
@@ -56,7 +59,9 @@ fyers_service = FyersService(fyers_details)
 fyers_client = FyersClientFactory.get_fyers_client(fyers_details)
 telemetry = LoggerService()
 
+
 ticker_name = "NSE:ICICIBANK-EQ"
+hist = fyers_service.download(ticker_name, "2y", tel_props)
 netpositison = fyers_service.get_positions(tel_props)
 fyers_client.orderbook()
 orders = fyers_service.get_order_book(tel_props)

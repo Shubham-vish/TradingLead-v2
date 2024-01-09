@@ -16,11 +16,12 @@ class SignalMessage:
     product_type: str
     quantity:int
     curr_quantity:int
+    stoploss_price: float = None
     
     
     @staticmethod
-    def from_strategy_user(strategy_user:StrategyUser,  strategy_name: str, signal:bool, ltp:float )->'SignalMessage':
-        return SignalMessage(strategy_user.ticker, strategy_user.trade_ticker, strategy_user.user_id, strategy_user.fyers_user_name, strategy_user.kv_secret_name, strategy_user.name, strategy_name, int(signal), ltp, strategy_user.product_type, strategy_user.quantity, strategy_user.curr_quantity)
+    def from_strategy_user(strategy_user:StrategyUser,  strategy_name: str, signal:bool, ltp:float, stoploss_price = None )->'SignalMessage':
+        return SignalMessage(strategy_user.ticker, strategy_user.trade_ticker, strategy_user.user_id, strategy_user.fyers_user_name, strategy_user.kv_secret_name, strategy_user.name, strategy_name, int(signal), ltp, strategy_user.product_type, strategy_user.quantity, strategy_user.curr_quantity, stoploss_price=stoploss_price)
     
     def to_sell(self):
         return self.signal == 0 and self.curr_quantity > 0

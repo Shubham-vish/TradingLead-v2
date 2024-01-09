@@ -6,7 +6,9 @@ from dataclasses import asdict
 from dacite import from_dict
 from enum import  Enum
 from SharedCode.Models.Fyers.fyers_constants import OrderType, OrderSide, ProductType
-
+from SharedCode.Models.Strategy.signal_message import SignalMessage
+import uuid
+from SharedCode.Utils.utility import FunctionUtils
 class Constants:
     type = "type"
     ticker = "ticker"
@@ -24,10 +26,12 @@ class StoplossType(Enum):
     trend = "trend"
 
 class StoplossCheckAt(Enum):
+    always_normal = "always-normal"
     closing = "closing"
     thirty_minute = "thirty_minute"
     hourly = "hourly"
     
+# for one ticker and have a single type="normal" stoploss configured, dont have multiple "normal" stoploss logic for a single ticker
 @dataclass
 class Stoploss:
     id: str
@@ -61,7 +65,7 @@ class Stoploss:
             'alert_side': self.alert_side,
             'is_stoploss': self.is_stoploss,
             'stock_name': self.stock_name,
-            'symbol_ns': self.symbol_ns,
+            'symbol_ns': self.ticker,
             'cur_qty': self.cur_qty
         }
 
@@ -106,6 +110,13 @@ class UserStoplosses:
             existing_stoploss.__dict__ = stoploss.__dict__
         else:
             self.stop_losses.append(stoploss)
+            
+    def add_stoploss_based_on_signal(self, signal_message:SignalMessage):
+        trade_ticker = FunctionUtils.get_trade_ticker_from_fyers_ticker(signal_message.ticker, signal_message.product_type)
+        # symbol_ns = signal_message.ticker
+        # trade_ticker = signal_message.ticker
+        stoploss = Stoploss(id=str(uuid.uuid4()), type=StoplossType.normal.value, ticker=trade_ticker, product_type=signal_message.product_type, symbol_ns=signal_message.ticker, is_stoploss=True, qty=signal_message.quantity, cur_qty=signal_message.curr_quantity, price=signal_message.stoploss_price, check_at=StoplossCheckAt.always_normal.value, stock_name=signal_message.ticker)
+        self.add_stoploss(stoploss)
 
     def get_symbols_from_stoplosses(self):
         symbols = [stoploss.ticker for stoploss in self.stop_losses if stoploss.is_stoploss]

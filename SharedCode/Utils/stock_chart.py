@@ -3,16 +3,16 @@ from plotly.subplots import make_subplots
 from SharedCode.Utils.constants import Constants
 import pandas as pd
 from datetime import datetime
-import yfinance as yf
 from SharedCode.Repository.Logger.logger_service import LoggerService
 import numpy as np
 from SharedCode.Repository.Cache.redis_cache_service import RedisCacheService
 from SharedCode.Utils.utility import FunctionUtils
 from SharedCode.Utils.retries import retry_decorator_with_tel_props
+from SharedCode.Repository.Fyers.fyers_service import FyersService
+from SharedCode.Repository.KeyVault.keyvault_service import KeyVaultService
+
 telemetry = LoggerService()
 
-
-    
 class StockChart:
 
     @staticmethod
@@ -118,10 +118,21 @@ class StockChart:
    
     @retry_decorator_with_tel_props(max_retries=3, delay=0.5)
     def generate_chart(self, ticker = "AAPL", period="1y", trend_start = None, trend_end = None,  chart_type = "scatter", point = "Close", stop_price = None, avg_price =None, tel_props=None)-> go.Figure:
+        # ticker = "NSE:ICICIBANK-EQ" 
+        # trend_start = "24-03-2023"
+        # trend_end = "26-10-2023"
+        
+        # trend_end= '2024-01-08' 
+        # ticker= 'NSE:ITC-EQ',
+        # chart_type= 'scatter'
+        # trend_start= '2024-01-01'
+        
         if trend_start:
             trend_start = pd.to_datetime(trend_start)
+            trend_start = FunctionUtils.get_ist_time(trend_start)
         if trend_end:
             trend_end = pd.to_datetime(trend_end)
+            trend_end = FunctionUtils.get_ist_time(trend_end)
         
         # Ensure trend_start is the earlier date
         if trend_end and (not trend_start or trend_end < trend_start):
@@ -137,7 +148,12 @@ class StockChart:
         
         if not hist:
             telemetry.info(f"Cache miss, Fetching data from yfinance for ticker: {ticker}, period: {period}", tel_props)
-            hist = yf.download(ticker, period = period)
+            kv_service = KeyVaultService()
+            fyer_details = kv_service.get_fyers_user(0)
+            fyer_service = FyersService(fyer_details)
+            
+            hist = fyer_service.download(ticker, period , tel_props)
+            hist = hist.rename(columns={"close": "Close"})
             value = hist.to_json()
             cache.set_value(redis_key, value)
         else:
@@ -148,7 +164,6 @@ class StockChart:
             fig = self.create_scatter_chart(hist)
         else:
             fig = self.create_candlestick_chart(hist)
-
         if trend_start and trend_end:
             df = hist.loc[(hist.index == trend_start) | (hist.index == trend_end)]
             fig = self.add_trend_line(fig, hist, trend_start, trend_end, point, df)
@@ -168,12 +183,17 @@ class StockChart:
 
         if days_difference <= 365: 
             return '1y'
-        elif days_difference <= 730:
-            return '2y'
-        elif days_difference <= 1825:
-            return '5y'
         else:
-            return 'max'
+            return '2y'
+        
+        # if days_difference <= 365: 
+        #     return '1y'
+        # elif days_difference <= 730:
+        #     return '2y'
+        # elif days_difference <= 1825:
+        #     return '5y'
+        # else:
+        #     return 'max'
 
     def create_scatter_chart(self, hist):
         return go.Figure(data=go.Scatter(x=hist.index, y=hist['Close'], mode='lines'))

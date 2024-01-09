@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import pandas as pd
-
+from SharedCode.Repository.Cache.redis_cache_service import RedisCacheService
 
 class FunctionUtils:
     @staticmethod
@@ -26,12 +26,38 @@ class FunctionUtils:
     
     @staticmethod
     def get_key_for_yfinance(ticker, period):
-        redis_key = f"{ticker}-{period}"
+        redis_key = f"{ticker}-{period}-yfinance4"
         return redis_key
 
     @staticmethod
     def get_storage_ticker(ticker):
         return ticker.replace(":", "_")
+    
+    @staticmethod
+    def set_symbol_ns_for_fyers_ticker(ticker, product_type, symbol_ns):
+        redis_cache = RedisCacheService()
+        redis_cache_key = f"{ticker}:{product_type}:symbol_ns"
+        redis_cache.set_value(redis_cache_key, symbol_ns)
+        return symbol_ns
+    
+    @staticmethod
+    def get_symbol_ns_from_fyers_ticker(ticker, product_type):
+        return ticker
+    
+    @staticmethod
+    def set_trade_ticker_for_fyers_ticker(ticker, product_type, trade_ticker):
+        redis_cache = RedisCacheService()
+        redis_cache_key = f"{ticker}:{product_type}:trade_ticker"
+        redis_cache.set_value(redis_cache_key, trade_ticker)
+        return trade_ticker
+    
+    @staticmethod
+    def get_trade_ticker_from_fyers_ticker(ticker, product_type):
+        redis_cache = RedisCacheService()
+        redis_cache_key = f"{ticker}:{product_type}:trade_ticker"
+        redis_cache_value = redis_cache.get_decoded_value(redis_cache_key)
+        return redis_cache_value    
+    
 
     @staticmethod
     def filter_last_n_days(df: pd.DataFrame, n=20) -> pd.DataFrame:

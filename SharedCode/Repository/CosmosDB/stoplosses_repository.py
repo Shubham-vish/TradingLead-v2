@@ -7,7 +7,7 @@ from SharedCode.Utils.constants import Constants
 from typing import List, Dict, Any
 from dacite import from_dict
 from dataclasses import asdict
-
+from SharedCode.Models.Strategy.signal_message import SignalMessage
 class StoplossesRepository:
     def __init__(self):
         kv_service = KeyVaultService()
@@ -114,3 +114,16 @@ class StoplossesRepository:
             user_stoplosses = UserStoplosses(user_id, user_id, [stop_loss])
             self.create_user_stoplosses(user_stoplosses, telemetry, tel_props)
 
+
+    def store_user_stoplosses_based_on_signal(self, signal_message:SignalMessage, telemetry:LoggerService, tel_props):
+        tel_props = tel_props.copy()
+        tel_props.update({Constants.USER_ID: signal_message.user_id, "action": "store_user_stoplosses_based_on_signal"})
+        user_stoplosses = self.get_user_stoplosses(signal_message.user_id, telemetry, tel_props)
+        if user_stoplosses:
+            telemetry.info(f"User {signal_message.user_id} already has stoplosses. Updating stoplosses.", tel_props)
+            user_stoplosses.add_stoploss_based_on_signal(signal_message)
+            self.update_user_stoplosses(user_stoplosses, telemetry, tel_props)            
+        else:
+            telemetry.info(f"User {signal_message.user_id} does not have any stoplosses. Creating stoplosses.", tel_props)
+            user_stoplosses = UserStoplosses(signal_message.user_id, signal_message.user_id, [Stoploss.from_signal_message(signal_message)])
+            self.create_user_stoplosses(user_stoplosses, telemetry, tel_props)

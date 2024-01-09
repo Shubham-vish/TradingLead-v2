@@ -26,19 +26,19 @@ strategy_name = "KernelRegressionStrategy"
 signal_topic_name = "signal-topic"
 
 
-def process_signal(strategy_user:StrategyUser, buy_signal:bool, ltp:float,  tel_props):
+def process_signal(strategy_user:StrategyUser, buy_signal:bool, ltp:float, stoploss_price:float,  tel_props):
     tel_props = tel_props.copy()
     tel_props.update({"action": "process_signal", "buy_signal": buy_signal, "ltp": ltp})
     
     
     telemetry.info(f"process_signal started for user, ticker: {strategy_user.user_id}, {strategy_user.ticker} with signal: {buy_signal}, ltp: {ltp}", tel_props)
     
-    signal_message = SignalMessage.from_strategy_user(strategy_user, strategy_name, buy_signal, ltp)
+    signal_message = SignalMessage.from_strategy_user(strategy_user, strategy_name, buy_signal, ltp, stoploss_price)
     signal_message_json = json.dumps(asdict(signal_message))
     
     tel_props.update({"signal_message": signal_message_json})
     telemetry.info(f"signal_message_json: {signal_message_json}", tel_props)
-    
+    # signal_message.curr_quantity = 0
     if signal_message.to_do_something():
         telemetry.info(f"Sending signal for user, ticker: {strategy_user.user_id}, {strategy_user.ticker} with signal: {buy_signal}, ltp: {ltp}", tel_props)
         sb_service.send_to_topic(signal_message_json, signal_topic_name)
@@ -70,18 +70,19 @@ def process_strategy_user(strategy_user:StrategyUser, strategy:Strategy, tel_pro
     telemetry.info(f"History fetched for ticker: {strategy_user.ticker} with shape: {df.shape}, head: {df.head()}", tel_props)
     
     df = kernel_strategy.get_yhat1_with_signals(df, "close")
-    df.head(10)
+    df.head(20)
     # StockChart.plot_chart_with_yhat(df, strategy_user.ticker, resolution)
     
     telemetry.info(f"yhat1 calculated for ticker: {strategy_user.ticker} with shape: {df.shape}, head: {df.head(2)}", tel_props)
     
     buy_signal = df['pyhat'].notnull().iloc[0]
-    
+    # buy_signal = True
     telemetry.info(f"KernelStrategy buy_signal: {buy_signal}, for ticker: {strategy_user.ticker}", tel_props)
 
     ltp = df['close'].iloc[0]
+    stoploss_price = df['low'].iloc[0]
     
-    process_signal(strategy_user, buy_signal, ltp, tel_props)
+    process_signal(strategy_user, buy_signal, ltp, stoploss_price, tel_props)
 
 
 def strategy_kernel_regression_runner(tel_props):

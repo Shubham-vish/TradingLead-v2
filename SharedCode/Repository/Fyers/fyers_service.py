@@ -20,7 +20,7 @@ from SharedCode.Models.Fyers.orderbook_response import OrderBookResponse, OrderB
 from SharedCode.Models.Fyers.quote_response import QuoteResponse
 from SharedCode.Models.Order.user_stoplosses import Stoploss
 import pandas as pd
-from datetime import timedelta
+from datetime import timedelta, datetime
 from SharedCode.Utils.constants import Constants
 import json
 from dacite import from_dict
@@ -520,7 +520,43 @@ class FyersService:
                 raise Exception(f"Order type not supported: {order}")
             
             telemetry.info(f"Qty for {order.symbol}: {order.quantity}", tel_props)
-           
+            
+            
+    def download(self, ticker, period, tel_props)->pd.DataFrame:
+        resolution = "1D"
+        # ticker = "NSE:ICICIBANK-EQ"
+        # period = "2y"
+        range_to = datetime.now().date()
+        
+        delta_days = 365 if period == "1y" else 365*2
+        range_from = (range_to - timedelta(days=delta_days))
+        
+        tel_props = tel_props.copy()
+        tel_props.update({"action": "fetch_deep_history", "ticker": ticker, "range_from": range_from, "range_to": range_to, "resolution": resolution})
+        
+        telemetry.info(
+            f"Fetching history for {ticker} from {range_from} to {range_to} with resolution {resolution}"
+        , tel_props)
+        
+        df = pd.DataFrame()
+        sd = range_from
+        enddate = range_to
+
+        n = abs((sd - enddate).days)
+        ab = None
+        while ab == None:
+            sd = enddate - timedelta(days=n)
+            ed = (sd + timedelta(days=99 if n > 365 else n)).strftime("%Y-%m-%d")
+            sd = sd.strftime("%Y-%m-%d")
+            dx = self.history(ticker, sd, ed, resolution, tel_props)
+            df = pd.concat([df, dx])
+            n = n - 365 if n > 365 else n - n
+            telemetry.info(f"n : {n}", tel_props)
+            if n == 0:
+                ab = "done"
+        return df
+    
+    
     def fetch_deep_history(self, ticker, range_from, range_to, resolution, tel_props)->pd.DataFrame:
         tel_props = tel_props.copy()
         tel_props.update({"action": "fetch_deep_history", "ticker": ticker, "range_from": range_from, "range_to": range_to, "resolution": resolution})

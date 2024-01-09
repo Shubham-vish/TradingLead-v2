@@ -80,10 +80,8 @@ class StrategyRepository:
                 
                 cur_strategy_user = next((strategy_user for strategy_user in strategy.strategy_users if strategy_user.ticker == signal_message.ticker and strategy_user.user_id ==  signal_message.user_id), None)
                 
-                if signal_message.to_buy():
-                    cur_strategy_user.curr_quantity = cur_strategy_user.quantity
-                else:
-                    cur_strategy_user.curr_quantity = 0
+                cur_strategy_user.curr_quantity = signal_message.curr_quantity
+                cur_strategy_user.quantity = signal_message.quantity
                 
                 other_strategy_users.append(cur_strategy_user)
 
